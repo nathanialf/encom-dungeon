@@ -105,6 +105,26 @@ pipeline {
             }
         }
         
+        stage('Terraform Bootstrap') {
+            steps {
+                script {
+                    def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                    
+                    withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                        dir("infrastructure/terraform/bootstrap") {
+                            sh """
+                                echo "Bootstrapping Terraform state backend for ${params.ENVIRONMENT}..."
+                                terraform init
+                                terraform plan -var="environment=${params.ENVIRONMENT}" -var="region=${env.AWS_REGION}" -out=bootstrap-plan
+                                terraform apply bootstrap-plan
+                                echo "Bootstrap completed successfully"
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        
         stage('Terraform Init') {
             steps {
                 script {
