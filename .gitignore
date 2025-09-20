@@ -85,3 +85,11 @@ coverage/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*tfplan*
+crash.log
+crash.*.log
