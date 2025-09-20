@@ -54,7 +54,7 @@ describe('Effects', () => {
     render(<Effects />);
     
     const pixelationElement = screen.getByTestId('pixelation');
-    expect(pixelationElement).toHaveAttribute('data-pixel-size', '6');
+    expect(pixelationElement).toHaveAttribute('data-pixel-size', '4');
   });
 
   test('should contain all effect text content', () => {

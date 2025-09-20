@@ -6,6 +6,7 @@ global.fetch = jest.fn();
 describe('EncomMapService', () => {
   let service: EncomMapService;
   const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+  const originalEnv = process.env;
 
   beforeEach(() => {
     service = new EncomMapService();
@@ -14,6 +15,7 @@ describe('EncomMapService', () => {
 
   afterEach(() => {
     jest.resetAllMocks();
+    process.env = originalEnv;
   });
 
   test('should create instance', () => {
@@ -111,5 +113,127 @@ describe('EncomMapService', () => {
 
   test('mapService should be exported instance', () => {
     expect(mapService).toBeInstanceOf(EncomMapService);
+  });
+
+  describe('environment configuration', () => {
+    test('should use prod API URL when environment is prod', () => {
+      process.env = { ...originalEnv, REACT_APP_ENVIRONMENT: 'prod' };
+      
+      const prodService = new EncomMapService();
+      expect(prodService).toBeInstanceOf(EncomMapService);
+      
+      // We can't directly test private baseUrl, but we can test it indirectly through API calls
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ mapId: 'test-id', hexagons: [] })
+      };
+      mockFetch.mockResolvedValue(mockResponse as any);
+
+      prodService.generateMap(100);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://3901ff1oz1.execute-api.us-west-1.amazonaws.com/prod/api/v1/map/generate',
+        expect.anything()
+      );
+    });
+
+    test('should include API key in headers when available', () => {
+      process.env = { ...originalEnv, REACT_APP_API_KEY: 'test-api-key' };
+      
+      const serviceWithApiKey = new EncomMapService();
+      
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ mapId: 'test-id', hexagons: [] })
+      };
+      mockFetch.mockResolvedValue(mockResponse as any);
+
+      serviceWithApiKey.generateMap(100);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-API-Key': 'test-api-key'
+          })
+        })
+      );
+    });
+
+    test('should include API key in getMapStatus when available', async () => {
+      process.env = { ...originalEnv, REACT_APP_API_KEY: 'test-api-key' };
+      
+      const serviceWithApiKey = new EncomMapService();
+      
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ status: 'completed', progress: 100 })
+      };
+      mockFetch.mockResolvedValue(mockResponse as any);
+
+      await serviceWithApiKey.getMapStatus('test-map-id');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-API-Key': 'test-api-key'
+          })
+        })
+      );
+    });
+  });
+
+  describe('generateMap with seed', () => {
+    test('should include seed in request body when provided', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ mapId: 'test-id', hexagons: [] })
+      };
+      mockFetch.mockResolvedValue(mockResponse as any);
+
+      await service.generateMap(100, 'test-seed');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          body: expect.stringContaining('"seed":"test-seed"')
+        })
+      );
+    });
+
+    test('should include numeric seed in request body when provided', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ mapId: 'test-id', hexagons: [] })
+      };
+      mockFetch.mockResolvedValue(mockResponse as any);
+
+      await service.generateMap(100, 12345);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          body: expect.stringContaining('"seed":12345')
+        })
+      );
+    });
+
+    test('should not include seed in request body when not provided', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ mapId: 'test-id', hexagons: [] })
+      };
+      mockFetch.mockResolvedValue(mockResponse as any);
+
+      await service.generateMap(100);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          body: expect.not.stringContaining('"seed"')
+        })
+      );
+    });
   });
 });
