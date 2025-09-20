@@ -20,3 +20,21 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "domain_name" {
+  description = "Custom domain name for the CloudFront distribution"
+  type        = string
+  default     = null
+}
+
+variable "hosted_zone_id" {
+  description = "Route53 hosted zone ID for the domain"
+  type        = string
+  default     = null
+}
+
+variable "create_certificate" {
+  description = "Whether to create an ACM certificate for the domain"
+  type        = bool
+  default     = false
+}

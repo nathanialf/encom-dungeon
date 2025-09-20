@@ -73,6 +73,9 @@ export const DungeonScene: React.FC = () => {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       <Canvas
+        onCreated={({ gl }) => {
+          gl.setClearColor('#ffffff');
+        }}
         camera={{
           position: [0, 5, 0],
           rotation: [0, 0, 0],

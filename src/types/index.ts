@@ -56,6 +56,11 @@ export interface GameState {
   player: PlayerState;
   camera: CameraState;
   dungeon: DungeonHex[];
+  dungeonMetadata: {
+    hexagonCount: number;
+    mapSeed: string | null;
+    generationTime: number;
+  };
   isLoading: boolean;
   error: string | null;
   minimap: {
@@ -81,6 +86,7 @@ export interface EncomMapResponse {
   }>;
   metadata: {
     totalHexagons: number;
+    seed?: string | number;
     dimensions: {
       width: number;
       height: number;

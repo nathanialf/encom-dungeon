@@ -5,6 +5,7 @@ interface GameStore extends GameState {
   setPlayer: (player: Partial<GameState['player']>) => void;
   setCamera: (camera: Partial<GameState['camera']>) => void;
   setDungeon: (dungeon: DungeonHex[]) => void;
+  setDungeonMetadata: (metadata: Partial<GameState['dungeonMetadata']>) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   updateMinimap: (minimap: Partial<GameState['minimap']>) => void;
@@ -30,6 +31,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     far: 1000,
   },
   dungeon: [],
+  dungeonMetadata: {
+    hexagonCount: 0,
+    mapSeed: null,
+    generationTime: 0,
+  },
   isLoading: false,
   error: null,
   minimap: {
@@ -53,6 +59,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     })),
 
   setDungeon: (dungeon) => set({ dungeon }),
+
+  setDungeonMetadata: (metadata) =>
+    set((state) => ({
+      dungeonMetadata: { ...state.dungeonMetadata, ...metadata },
+    })),
 
   setLoading: (isLoading) => set({ isLoading }),
 

@@ -52,9 +52,12 @@ locals {
 module "frontend" {
   source = "../../../modules/frontend"
   
-  bucket_name     = local.frontend_bucket_name
-  index_document  = "index.html"
-  price_class     = "PriceClass_100"  # Cost-optimized
+  bucket_name       = local.frontend_bucket_name
+  index_document    = "index.html"
+  price_class       = "PriceClass_100"  # Cost-optimized
+  domain_name       = var.domain_name
+  hosted_zone_id    = var.hosted_zone_id
+  create_certificate = var.create_certificate
   
   tags = merge(local.common_tags, {
     Component = "frontend"

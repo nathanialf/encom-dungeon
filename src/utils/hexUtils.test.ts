@@ -53,7 +53,7 @@ describe('hexUtils', () => {
       const result = positionToHex({ x: 0, y: 0, z: 0 });
       expect(result.q).toBe(0);
       expect(result.r).toBe(0);
-      expect(result.s).toBe(0);
+      expect(Math.abs(result.s)).toBe(0); // Handle -0 vs 0 precision
     });
   });
 

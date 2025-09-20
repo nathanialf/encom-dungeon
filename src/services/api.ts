@@ -24,7 +24,7 @@ export class EncomMapService {
     this.apiKey = getApiKey();
   }
 
-  async generateMap(hexagonCount: number = 500): Promise<EncomMapResponse> {
+  async generateMap(hexagonCount: number = 500, seed?: string | number): Promise<EncomMapResponse> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -33,12 +33,14 @@ export class EncomMapService {
       headers['X-API-Key'] = this.apiKey;
     }
 
+    const finalSeed = seed || Math.floor(Math.random() * 1000000);
+
     const response = await fetch(`${this.baseUrl}/api/v1/map/generate`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         hexagonCount: Math.min(hexagonCount, 1000),
-        seed: Math.floor(Math.random() * 1000000),
+        seed: finalSeed,
       }),
     });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Effects } from './Effects';
 
 // Mock the child components
@@ -27,41 +27,41 @@ describe('Effects', () => {
   });
 
   test('should render EffectComposer', () => {
-    const { getByTestId } = render(<Effects />);
+    render(<Effects />);
     
-    expect(getByTestId('effect-composer')).toBeInTheDocument();
+    expect(screen.getByTestId('effect-composer')).toBeInTheDocument();
   });
 
   test('should render Pixelation effect', () => {
-    const { getByTestId } = render(<Effects />);
+    render(<Effects />);
     
-    expect(getByTestId('pixelation')).toBeInTheDocument();
+    expect(screen.getByTestId('pixelation')).toBeInTheDocument();
   });
 
   test('should render TerminalGreen effect', () => {
-    const { getByTestId } = render(<Effects />);
+    render(<Effects />);
     
-    expect(getByTestId('terminal-green')).toBeInTheDocument();
+    expect(screen.getByTestId('terminal-green')).toBeInTheDocument();
   });
 
   test('should render Bloom effect', () => {
-    const { getByTestId } = render(<Effects />);
+    render(<Effects />);
     
-    expect(getByTestId('bloom')).toBeInTheDocument();
+    expect(screen.getByTestId('bloom')).toBeInTheDocument();
   });
 
   test('should pass correct pixel size to Pixelation', () => {
-    const { getByTestId } = render(<Effects />);
+    render(<Effects />);
     
-    const pixelationElement = getByTestId('pixelation');
+    const pixelationElement = screen.getByTestId('pixelation');
     expect(pixelationElement).toHaveAttribute('data-pixel-size', '6');
   });
 
   test('should contain all effect text content', () => {
-    const { getByText } = render(<Effects />);
+    render(<Effects />);
     
-    expect(getByText('Pixelation Effect')).toBeInTheDocument();
-    expect(getByText('Terminal Green Effect')).toBeInTheDocument();
-    expect(getByText('Bloom Effect')).toBeInTheDocument();
+    expect(screen.getByText('Pixelation Effect')).toBeInTheDocument();
+    expect(screen.getByText('Terminal Green Effect')).toBeInTheDocument();
+    expect(screen.getByText('Bloom Effect')).toBeInTheDocument();
   });
 });

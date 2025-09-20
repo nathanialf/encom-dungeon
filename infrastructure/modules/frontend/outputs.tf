@@ -25,5 +25,20 @@ output "distribution_id" {
 
 output "website_url" {
   description = "URL of the website"
-  value       = "https://${aws_cloudfront_distribution.website.domain_name}"
+  value       = var.domain_name != null ? "https://${var.domain_name}" : "https://${aws_cloudfront_distribution.website.domain_name}"
+}
+
+output "certificate_arn" {
+  description = "ARN of the ACM certificate"
+  value       = var.domain_name != null && var.create_certificate ? aws_acm_certificate.website[0].arn : null
+}
+
+output "hosted_zone_id" {
+  description = "ID of the Route53 hosted zone"
+  value       = var.domain_name != null ? (var.hosted_zone_id != null ? var.hosted_zone_id : aws_route53_zone.website[0].zone_id) : null
+}
+
+output "domain_name" {
+  description = "Custom domain name (if configured)"
+  value       = var.domain_name
 }

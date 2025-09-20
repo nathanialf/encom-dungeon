@@ -5,7 +5,7 @@ import { DungeonHex, EncomMapResponse } from '../types';
 import { hexToPosition, determineWalls } from '../utils/hexUtils';
 
 export const useDungeonGenerator = () => {
-  const { setDungeon, setLoading, setError } = useGameStore();
+  const { setDungeon, setDungeonMetadata, setLoading, setError } = useGameStore();
 
   const convertEncomMapToDungeon = useCallback((mapData: EncomMapResponse): DungeonHex[] => {
     
@@ -46,12 +46,12 @@ export const useDungeonGenerator = () => {
     return hexes;
   }, []);
 
-  const generateDungeon = useCallback(async (hexagonCount: number = 500) => {
+  const generateDungeon = useCallback(async (hexagonCount: number = 500, seed?: string | number) => {
     try {
       setLoading(true);
       setError(null);
       
-      const mapData = await mapService.generateMap(hexagonCount);
+      const mapData = await mapService.generateMap(hexagonCount, seed);
       
       if (!mapData || !mapData.hexagons || mapData.hexagons.length === 0) {
         throw new Error('API returned empty or invalid data');
@@ -60,6 +60,13 @@ export const useDungeonGenerator = () => {
       const dungeonHexes = convertEncomMapToDungeon(mapData);
       
       setDungeon(dungeonHexes);
+      
+      // Store dungeon metadata
+      setDungeonMetadata({
+        hexagonCount: mapData.hexagons.length,
+        mapSeed: mapData.metadata?.seed?.toString() || seed?.toString() || null,
+        generationTime: mapData.metadata?.generation_time || 0,
+      });
       
       // Find a good spawn point (walkable hex near center)
       const walkableHexes = dungeonHexes.filter(hex => hex.isWalkable);
@@ -85,7 +92,7 @@ export const useDungeonGenerator = () => {
     } finally {
       setLoading(false);
     }
-  }, [convertEncomMapToDungeon, setDungeon, setLoading, setError]);
+  }, [convertEncomMapToDungeon, setDungeon, setDungeonMetadata, setLoading, setError]);
 
   useEffect(() => {
     generateDungeon(250);
