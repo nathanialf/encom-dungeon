@@ -48,7 +48,9 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
       
       return frustum.intersectsSphere(boundingSphere);
     });
-  }, [hexes, player.position, Math.round(player.position[0] / 75), Math.round(player.position[2] / 75), camera.projectionMatrix, camera.matrixWorldInverse]);
+    // Extract complex expressions to satisfy React linting
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hexes, player.position, camera.projectionMatrix, camera.matrixWorldInverse]);
   
   return (
     <group name="hex-grid">

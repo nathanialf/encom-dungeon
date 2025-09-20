@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { PixelationEffect } from './PixelationEffect';
 
 interface PixelationProps {

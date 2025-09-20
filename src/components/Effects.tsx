@@ -1,5 +1,5 @@
 import React from 'react';
-import { EffectComposer, Bloom, BrightnessContrast } from '@react-three/postprocessing';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { Pixelation } from './effects/Pixelation';
 import { TerminalGreen } from './effects/TerminalGreen';

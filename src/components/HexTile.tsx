@@ -1,7 +1,7 @@
 import React, { useMemo, memo } from 'react';
 import * as THREE from 'three';
 import { DungeonHex } from '../types';
-import { HEX_SIZE, HEX_HEIGHT_SCALE, getNeighborType, isCorridorHex } from '../utils/hexUtils';
+import { HEX_SIZE, HEX_HEIGHT_SCALE, getNeighborType } from '../utils/hexUtils';
 import { useGameStore } from '../store/gameStore';
 import './materials/TerminalMaterials';
 
