@@ -1,12 +1,47 @@
 import React, { useMemo, memo } from 'react';
 import * as THREE from 'three';
-import { DungeonHex } from '../types';
-import { HEX_SIZE, HEX_HEIGHT_SCALE, getNeighborType } from '../utils/hexUtils';
+import { DungeonHex, WallConfiguration } from '../types';
+import { HEX_SIZE, HEX_HEIGHT_SCALE, hexNeighbors } from '../utils/hexUtils';
 import { useGameStore } from '../store/gameStore';
 import './materials/TerminalMaterials';
 
+// Optimized neighbor type check using the pre-built map
+function getNeighborTypeOptimized(hex: DungeonHex, direction: keyof WallConfiguration, hexMap: Map<string, DungeonHex>): 'none' | 'wall' | 'doorway' {
+  const neighbors = hexNeighbors(hex.coordinate);
+  const wallDirections = ['southeast', 'northeast', 'north', 'northwest', 'southwest', 'south'] as const;
+  const directionIndex = wallDirections.indexOf(direction);
+  
+  if (directionIndex === -1) return 'wall';
+  
+  const neighborCoord = neighbors[directionIndex];
+  const neighborKey = `${neighborCoord.q},${neighborCoord.r}`;
+  const physicalNeighbor = hexMap.get(neighborKey);
+  
+  // If no physical neighbor exists, it's a wall
+  if (!physicalNeighbor) {
+    return 'wall';
+  }
+  
+  // Check if this physical neighbor is in our connections
+  const isConnected = hex.connections.includes(physicalNeighbor.id);
+  
+  if (!isConnected) {
+    // Physical neighbor exists but no connection = wall
+    return 'wall';
+  }
+  
+  // Connected neighbor - check type for doorway vs open
+  if (physicalNeighbor.type === 'CORRIDOR') {
+    return 'doorway';
+  }
+  
+  // Connected to room = no wall
+  return 'none';
+}
+
 interface HexTileProps {
   hex: DungeonHex;
+  hexMap: Map<string, DungeonHex>;
 }
 
 // Doorway wall component - just two side rectangles with black spanning planes
@@ -68,8 +103,7 @@ const DoorwayWall: React.FC<{
   );
 };
 
-export const HexTile: React.FC<HexTileProps> = memo(({ hex }) => {
-  const { dungeon } = useGameStore();
+export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap }) => {
   
   const hexGeometry = useMemo(() => {
     const radius = HEX_SIZE;
@@ -122,7 +156,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex }) => {
       
       {/* North wall - between top-left and top-right pillars */}
       {hex.isWalkable && (() => {
-        const neighborType = getNeighborType(hex, 'north', dungeon);
+        const neighborType = getNeighborTypeOptimized(hex, 'north', hexMap);
         if (neighborType === 'wall') {
           return (
             <mesh position={[0, hexGeometry.height / 2, -hexGeometry.radius * 0.866]}>
@@ -145,7 +179,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex }) => {
       
       {/* South wall - between bottom-left and bottom-right pillars */}
       {hex.isWalkable && (() => {
-        const neighborType = getNeighborType(hex, 'south', dungeon);
+        const neighborType = getNeighborTypeOptimized(hex, 'south', hexMap);
         if (neighborType === 'wall') {
           return (
             <mesh position={[0, hexGeometry.height / 2, hexGeometry.radius * 0.866]}>
@@ -168,7 +202,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex }) => {
       
       {/* Northeast wall - between top-right and right pillars */}
       {hex.isWalkable && (() => {
-        const neighborType = getNeighborType(hex, 'northeast', dungeon);
+        const neighborType = getNeighborTypeOptimized(hex, 'northeast', hexMap);
         if (neighborType === 'wall') {
           return (
             <mesh position={[hexGeometry.radius * 0.75, hexGeometry.height / 2, -hexGeometry.radius * 0.433]} rotation={[0, -Math.PI / 3, 0]}>
@@ -191,7 +225,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex }) => {
       
       {/* Southeast wall - between right and bottom-right pillars */}
       {hex.isWalkable && (() => {
-        const neighborType = getNeighborType(hex, 'southeast', dungeon);
+        const neighborType = getNeighborTypeOptimized(hex, 'southeast', hexMap);
         if (neighborType === 'wall') {
           return (
             <mesh position={[hexGeometry.radius * 0.75, hexGeometry.height / 2, hexGeometry.radius * 0.433]} rotation={[0, Math.PI / 3, 0]}>
@@ -214,7 +248,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex }) => {
       
       {/* Southwest wall - between bottom-left and left pillars */}
       {hex.isWalkable && (() => {
-        const neighborType = getNeighborType(hex, 'southwest', dungeon);
+        const neighborType = getNeighborTypeOptimized(hex, 'southwest', hexMap);
         if (neighborType === 'wall') {
           return (
             <mesh position={[-hexGeometry.radius * 0.75, hexGeometry.height / 2, hexGeometry.radius * 0.433]} rotation={[0, -Math.PI / 3, 0]}>
@@ -237,7 +271,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex }) => {
       
       {/* Northwest wall - between left and top-left pillars */}
       {hex.isWalkable && (() => {
-        const neighborType = getNeighborType(hex, 'northwest', dungeon);
+        const neighborType = getNeighborTypeOptimized(hex, 'northwest', hexMap);
         if (neighborType === 'wall') {
           return (
             <mesh position={[-hexGeometry.radius * 0.75, hexGeometry.height / 2, -hexGeometry.radius * 0.433]} rotation={[0, Math.PI / 3, 0]}>

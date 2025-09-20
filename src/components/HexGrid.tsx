@@ -13,44 +13,30 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
   const { player } = useGameStore();
   const { camera } = useThree();
   
+  // Create hex lookup map once and memoize it
+  const hexMap = useMemo(() => {
+    return new Map(hexes.map(h => [`${h.coordinate.q},${h.coordinate.r}`, h]));
+  }, [hexes]);
+  
   const visibleHexes = useMemo(() => {
-    const RENDER_DISTANCE = 150; // Increased render distance
+    const RENDER_DISTANCE = 300; // Extended render distance for better visibility
     const playerPos = player.position;
     
-    // Round player position to much larger chunks to reduce hitching
-    const roundedX = Math.round(playerPos[0] / 75) * 75; // Update every 3 hexes
-    const roundedZ = Math.round(playerPos[2] / 75) * 75;
+    // Round player position to large chunks to reduce hitching
+    const roundedX = Math.round(playerPos[0] / 50) * 50; // Update every ~2 hexes
+    const roundedZ = Math.round(playerPos[2] / 50) * 50;
     
     // Use squared distance to avoid sqrt calculation
     const RENDER_DISTANCE_SQUARED = RENDER_DISTANCE * RENDER_DISTANCE;
     
-    // Create frustum for culling
-    const frustum = new THREE.Frustum();
-    const cameraMatrix = new THREE.Matrix4();
-    cameraMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    frustum.setFromProjectionMatrix(cameraMatrix);
-    
     return hexes.filter((hex) => {
-      // First check distance (cheap)
       const dx = hex.position.x - roundedX;
       const dz = hex.position.z - roundedZ;
       const distanceSquared = dx * dx + dz * dz;
-      if (distanceSquared > RENDER_DISTANCE_SQUARED) {
-        return false;
-      }
-      
-      // Then check frustum (more expensive but reduces rendered objects significantly)
-      const hexWorldPos = new THREE.Vector3(hex.position.x, hex.position.y, hex.position.z);
-      
-      // Create a bounding sphere for the hex (radius should cover the hex size)
-      const hexRadius = 30; // Approximate hex size + some padding
-      const boundingSphere = new THREE.Sphere(hexWorldPos, hexRadius);
-      
-      return frustum.intersectsSphere(boundingSphere);
+      return distanceSquared <= RENDER_DISTANCE_SQUARED;
     });
-    // Extract complex expressions to satisfy React linting
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hexes, player.position, camera.projectionMatrix, camera.matrixWorldInverse]);
+    // Only recalculate when rounded position changes
+  }, [hexes, Math.round(player.position[0] / 50), Math.round(player.position[2] / 50)]);
   
   return (
     <group name="hex-grid">
@@ -58,6 +44,7 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
         <HexTile
           key={`${hex.coordinate.q}-${hex.coordinate.r}-${hex.coordinate.s}`}
           hex={hex}
+          hexMap={hexMap}
         />
       ))}
     </group>

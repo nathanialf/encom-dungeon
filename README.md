@@ -1,6 +1,6 @@
 # ENCOM Dungeon Explorer
 
-A 3D first-person dungeon explorer built with React Three Fiber, featuring procedurally generated hex-grid dungeons with terminal green aesthetics.
+A 3D first-person dungeon explorer built with React Three Fiber, featuring procedurally generated hex-grid dungeons with dynamic terminal aesthetics and advanced performance optimizations.
 
 ## Features
 
@@ -10,15 +10,17 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 - **3D Exploration**: Fully immersive 3D environment with realistic lighting
 
 ### Visual Design
-- **Terminal Aesthetic**: Green monospace UI with retro computer styling
-- **High-Quality Textures**: PNG-based floor, wall, and ceiling textures
-- **Advanced Lighting**: Dynamic shadows and ambient lighting effects
-- **Post-Processing**: Pixelation effects for retro visual appeal
+- **Dynamic Terminal Aesthetic**: Color-cycling terminal effects (green ↔ purple) with retro computer styling
+- **High-Quality Textures**: PNG-based floor, wall, and ceiling textures with proper UV mapping
+- **Advanced Lighting**: Dynamic point lights and ambient lighting effects
+- **Post-Processing**: Terminal effects with scanlines and color cycling
+- **Doorway System**: Visual distinction between rooms and corridors with doorframe rendering
 
 ### User Interface
-- **HUD System**: Real-time debug information and controls
+- **HUD System**: Real-time debug information with FPS monitoring and player coordinates
 - **Minimap**: Interactive overview of explored areas
 - **Responsive Controls**: Both keyboard shortcuts and clickable buttons
+- **Performance Monitoring**: Real-time FPS display and debug information
 
 ## Controls
 
@@ -78,8 +80,10 @@ src/
 The dungeon generation system uses:
 - **Hex Grid Layout** - Six-sided tile system for interesting geometry
 - **Procedural Algorithms** - Randomized layout with guaranteed connectivity
-- **Wall Detection** - Automatic wall placement between tiles
+- **Smart Wall System** - Automatic wall placement with doorway detection between rooms/corridors
+- **Connection-Based Logic** - Walls only appear where hexes are not connected
 - **Texture Mapping** - Seamless texture application to generated geometry
+- **Performance Culling** - Only visible hexes within render distance are processed
 
 ## Development
 
@@ -119,6 +123,9 @@ Creates optimized production build in `/build` directory.
 
 ### Infrastructure
 The project includes Terraform configuration for AWS deployment:
+- **CloudFront Distribution** - Global CDN with custom domain support
+- **Route53 DNS** - Hosted zones for dev.dungeon.riperoni.com and dungeon.riperoni.com
+- **ACM Certificates** - SSL/TLS certificates with DNS validation
 - **S3 State Backend** - Terraform state management
 - **Bootstrap Process** - Initial infrastructure setup
 - **Environment-specific** - Dev/staging/prod configurations
@@ -149,6 +156,12 @@ npm run build
 ### Environment Variables
 - `GENERATE_SOURCEMAP=false` - Disables source maps for production builds
 
+### Shader Configuration
+The terminal effect shader supports time-based color cycling:
+- **80-second cycle**: 30s green → 10s transition → 30s purple → 10s transition
+- **Time-synchronized**: Connected to global time store for consistent animation
+- **WebGL optimized**: Efficient shader uniforms with minimal CPU overhead
+
 ### Texture Assets
 Textures are located in `/public/textures/`:
 - `floor-texture.png` - Dungeon floor tiling
@@ -159,13 +172,20 @@ Textures are located in `/public/textures/`:
 
 ### Optimization Features
 - **Memoized Components** - Prevent unnecessary re-renders
-- **Texture Caching** - Efficient asset loading
-- **Geometry Pooling** - Reuse 3D objects where possible
-- **Level-of-Detail** - Adaptive quality based on distance
+- **Hex Map Caching** - Pre-built neighbor lookup maps for efficient wall generation
+- **Distance-based Culling** - Only render hexes within 300 unit radius
+- **Chunked Updates** - Visibility recalculation every ~2 hex movement
+- **WebGL Optimizations** - High-performance context with disabled antialiasing/shadows
+
+### Performance Notes
+- **30 FPS Cap** - Some systems may be limited to 30fps due to VSync/power management
+- **Chrome vs Firefox** - Chrome may exhibit more movement hitching at 30fps than Firefox
+- **GPU Acceleration** - Requires discrete GPU for optimal performance
+- **Render Distance** - 300 units with ~1000 hex capacity
 
 ### Target Performance
-- **60 FPS** on modern desktop browsers
-- **30 FPS** on mobile devices
+- **60 FPS** on modern desktop browsers (when system allows)
+- **30 FPS** baseline with smooth movement compensation
 - **< 2MB** initial bundle size
 
 ## Browser Support
@@ -187,9 +207,18 @@ WebGL 2.0 support required for optimal performance.
 
 ### Testing
 - Unit tests for all utility functions
-- Component tests for UI interactions
+- Component tests for UI interactions  
 - Integration tests for 3D scene behavior
+- Performance testing for frame rate stability
 - 16%+ code coverage requirement
+
+### Recent Improvements
+- **Performance Optimization**: Eliminated expensive Map creation in neighbor lookups (1000+ maps/frame → 1 map total)
+- **Color Cycling Effects**: Dynamic terminal color transitions with precise timing
+- **FPS Monitoring**: Real-time performance tracking and debug information
+- **Render Distance**: Extended to 300 units with efficient culling
+- **Infrastructure**: Complete DNS setup with CloudFront and Route53
+- **Browser Compatibility**: Optimized WebGL context for high-performance rendering
 
 ## License
 

@@ -3,7 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { Minimap } from './Minimap';
 
 export const HUD: React.FC = () => {
-  const { player, hud, dungeonMetadata } = useGameStore();
+  const { player, hud, dungeonMetadata, fps } = useGameStore();
   const lastToggleTime = useRef<{ minimap: number; debug: number }>({ minimap: 0, debug: 0 });
 
   const handleToggleMinimap = useCallback(() => {
@@ -62,8 +62,9 @@ export const HUD: React.FC = () => {
             pointerEvents: 'auto',
           }}
         >
-          <div>Position: {player.position.map(p => p.toFixed(2)).join(', ')}</div>
-          <div>Rotation: {player.rotation.map(r => r.toFixed(2)).join(', ')}</div>
+          <div>FPS: {fps}</div>
+          <div>Position: {player.position[0].toFixed(2)}, {player.position[1].toFixed(2)}, {player.position[2].toFixed(2)}</div>
+          <div>Rotation: {player.rotation[0].toFixed(2)}, {player.rotation[1].toFixed(2)}, {player.rotation[2].toFixed(2)}</div>
           <div>Moving: {player.isMoving ? 'Yes' : 'No'}</div>
           <div style={{ marginTop: '10px', borderTop: '1px solid #00ff00', paddingTop: '5px' }}>
             <div>Hexagons: {dungeonMetadata.hexagonCount}</div>

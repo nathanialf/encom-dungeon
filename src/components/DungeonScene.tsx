@@ -71,17 +71,39 @@ export const DungeonScene: React.FC = () => {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
+    <div style={{ 
+      width: '100vw', 
+      height: '100vh',
+      // Force high refresh rate hints
+      willChange: 'transform',
+      transform: 'translateZ(0)', // Force GPU acceleration
+    }}>
       <Canvas
         onCreated={({ gl }) => {
           gl.setClearColor('#ffffff');
+          // Force 60fps performance optimizations
+          gl.setPixelRatio(1); // Force 1x pixel ratio for maximum performance
+          gl.shadowMap.enabled = false;
+          
+          // Force WebGL to prioritize performance over quality
+          const canvas = gl.domElement;
+          // Try to hint browser to use 60fps
+          canvas.style.imageRendering = 'pixelated';
         }}
+        gl={{ 
+          powerPreference: 'high-performance',
+          antialias: false, // Disable antialiasing for performance
+          alpha: false, // Disable alpha channel
+          stencil: false, // Disable stencil buffer
+        }}
+        frameloop="always" // Force continuous rendering
+        performance={{ min: 0.5 }} // Higher threshold to force 60fps
         camera={{
           position: [0, 5, 0],
           rotation: [0, 0, 0],
           fov: 90,
           near: 0.5,
-          far: 120, // Further reduced to match render distance
+          far: 200, // Increased render distance for larger dungeons
         }}
       >
         <Suspense fallback={null}>

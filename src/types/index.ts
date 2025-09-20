@@ -61,6 +61,7 @@ export interface GameState {
     mapSeed: string | null;
     generationTime: number;
   };
+  fps: number;
   isLoading: boolean;
   error: string | null;
   minimap: {

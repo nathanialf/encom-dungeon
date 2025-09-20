@@ -95,7 +95,7 @@ export const useDungeonGenerator = () => {
   }, [convertEncomMapToDungeon, setDungeon, setDungeonMetadata, setLoading, setError]);
 
   useEffect(() => {
-    generateDungeon(250);
+    generateDungeon(1000);
   }, [generateDungeon]);
 
   return {

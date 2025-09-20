@@ -6,6 +6,7 @@ interface GameStore extends GameState {
   setCamera: (camera: Partial<GameState['camera']>) => void;
   setDungeon: (dungeon: DungeonHex[]) => void;
   setDungeonMetadata: (metadata: Partial<GameState['dungeonMetadata']>) => void;
+  setFps: (fps: number) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   updateMinimap: (minimap: Partial<GameState['minimap']>) => void;
@@ -36,6 +37,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     mapSeed: null,
     generationTime: 0,
   },
+  fps: 0,
   isLoading: false,
   error: null,
   minimap: {
@@ -64,6 +66,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => ({
       dungeonMetadata: { ...state.dungeonMetadata, ...metadata },
     })),
+
+  setFps: (fps) => set({ fps }),
 
   setLoading: (isLoading) => set({ isLoading }),
 

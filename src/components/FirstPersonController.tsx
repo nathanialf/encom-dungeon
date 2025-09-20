@@ -112,8 +112,6 @@ export const FirstPersonController: React.FC = () => {
     // Keep player at reasonable height above ground
     newPosition.y = Math.max(newPosition.y, 2);
     
-    updatePlayerPosition([newPosition.x, newPosition.y, newPosition.z]);
-    
     camera.position.copy(newPosition);
     camera.position.y = newPosition.y + 1.7;
     
@@ -127,7 +125,7 @@ export const FirstPersonController: React.FC = () => {
     // Convert to 0-2π range (always positive)
     const normalizedAngle = angleRadians < 0 ? angleRadians + 2 * Math.PI : angleRadians;
     
-    // Update player rotation with the direct angle calculation
+    updatePlayerPosition([newPosition.x, newPosition.y, newPosition.z]);
     updatePlayerRotation([camera.rotation.x, normalizedAngle, camera.rotation.z]);
     
     const isMoving = velocity.current.length() > 0.1;
