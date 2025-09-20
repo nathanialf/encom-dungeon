@@ -1,9 +1,26 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Minimap } from './Minimap';
 
 export const HUD: React.FC = () => {
-  const { player, hud, toggleMinimap, toggleDebugInfo } = useGameStore();
+  const { player, hud } = useGameStore();
+  const lastToggleTime = useRef<{ minimap: number; debug: number }>({ minimap: 0, debug: 0 });
+
+  const handleToggleMinimap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastToggleTime.current.minimap > 200) { // 200ms debounce
+      lastToggleTime.current.minimap = now;
+      useGameStore.getState().toggleMinimap();
+    }
+  }, []);
+
+  const handleToggleDebug = useCallback(() => {
+    const now = Date.now();
+    if (now - lastToggleTime.current.debug > 200) { // 200ms debounce
+      lastToggleTime.current.debug = now;
+      useGameStore.getState().toggleDebugInfo();
+    }
+  }, []);
 
   return (
     <div
@@ -55,48 +72,50 @@ export const HUD: React.FC = () => {
         style={{
           position: 'absolute',
           bottom: '20px',
-          left: '20px',
-          fontSize: '12px',
-          opacity: 0.7,
-        }}
-      >
-        <div>WASD: Move | Mouse: Look | M: Minimap | F1: Debug</div>
-      </div>
-
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '20px',
           right: '20px',
+          padding: '10px',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          border: '1px solid #00ff00',
+          borderRadius: '4px',
           pointerEvents: 'auto',
         }}
       >
+        <div style={{ 
+          fontSize: '12px', 
+          opacity: 0.7, 
+          marginBottom: '10px',
+          textAlign: 'center'
+        }}>
+          WASD: Move | Mouse: Look
+        </div>
         <button
-          onClick={toggleMinimap}
+          onClick={handleToggleMinimap}
           style={{
             marginRight: '10px',
             padding: '5px 10px',
             backgroundColor: 'transparent',
             color: '#00ff00',
             border: '1px solid #00ff00',
+            borderRadius: '2px',
             fontFamily: 'monospace',
             cursor: 'pointer',
           }}
         >
-          MAP
+          MAP (M)
         </button>
         <button
-          onClick={toggleDebugInfo}
+          onClick={handleToggleDebug}
           style={{
             padding: '5px 10px',
             backgroundColor: 'transparent',
             color: '#00ff00',
             border: '1px solid #00ff00',
+            borderRadius: '2px',
             fontFamily: 'monospace',
             cursor: 'pointer',
           }}
         >
-          DEBUG
+          DEBUG (F1)
         </button>
       </div>
     </div>

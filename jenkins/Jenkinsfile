@@ -62,7 +62,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Running unit tests..."
-                    npm test -- --coverage --watchAll=false --ci --passWithNoTests
+                    npm test -- --coverage --watchAll=false --ci
                 '''
             }
         }
