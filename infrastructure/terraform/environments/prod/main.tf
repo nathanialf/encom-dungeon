@@ -9,7 +9,7 @@ terraform {
   }
   
   backend "s3" {
-    bucket = "encom-dungeon-terraform-state-prod-us-west-1"
+    bucket = "prod-encom-dungeon-terraform-state"
     key    = "encom-dungeon/prod/terraform.tfstate"
     region = "us-west-1"
   }

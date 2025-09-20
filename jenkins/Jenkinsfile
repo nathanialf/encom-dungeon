@@ -9,7 +9,7 @@ pipeline {
         )
         choice(
             name: 'ACTION',
-            choices: ['plan', 'apply'],
+            choices: ['plan', 'apply', 'bootstrap'],
             description: 'Terraform action to perform'
         )
     }
@@ -68,6 +68,9 @@ pipeline {
         }
         
         stage('Build Application') {
+            when {
+                expression { params.ACTION == 'plan' || params.ACTION == 'apply' }
+            }
             steps {
                 script {
                     def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
@@ -106,6 +109,9 @@ pipeline {
         }
         
         stage('Terraform Bootstrap') {
+            when {
+                expression { params.ACTION == 'bootstrap' }
+            }
             steps {
                 script {
                     def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
@@ -126,6 +132,9 @@ pipeline {
         }
         
         stage('Terraform Init') {
+            when {
+                expression { params.ACTION == 'plan' || params.ACTION == 'apply' }
+            }
             steps {
                 script {
                     def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
@@ -142,7 +151,30 @@ pipeline {
             }
         }
         
+        stage('Terraform Validate') {
+            when {
+                expression { params.ACTION == 'plan' || params.ACTION == 'apply' }
+            }
+            steps {
+                script {
+                    def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                    
+                    withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                        dir("infrastructure/terraform/environments/${params.ENVIRONMENT}") {
+                            sh '''
+                                echo "Validating Terraform configuration..."
+                                terraform validate
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        
         stage('Terraform Plan') {
+            when {
+                expression { params.ACTION == 'plan' || params.ACTION == 'apply' }
+            }
             steps {
                 script {
                     def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
