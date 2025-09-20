@@ -1,0 +1,277 @@
+pipeline {
+    agent any
+    
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'prod'],
+            description: 'Target environment for deployment'
+        )
+        choice(
+            name: 'ACTION',
+            choices: ['plan', 'apply'],
+            description: 'Terraform action to perform'
+        )
+    }
+    
+    environment {
+        AWS_REGION = 'us-west-1'
+        PROJECT_NAME = 'encom-dungeon'
+        TF_IN_AUTOMATION = 'true'
+    }
+    
+    tools {
+        nodejs 'NodeJS-18'
+        terraform 'Terraform-1.5'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    env.BUILD_VERSION = "${env.BUILD_NUMBER}-${gitCommit.take(7)}"
+                }
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    echo "Node.js version: $(node --version)"
+                    echo "npm version: $(npm --version)"
+                    npm ci
+                '''
+            }
+        }
+        
+        stage('Lint & Type Check') {
+            steps {
+                sh '''
+                    echo "Running ESLint..."
+                    npm run lint
+                    
+                    echo "Running TypeScript compiler check..."
+                    npm run typecheck
+                '''
+            }
+        }
+        
+        stage('Unit Tests') {
+            steps {
+                sh '''
+                    echo "Running unit tests..."
+                    npm test -- --coverage --watchAll=false --ci
+                '''
+            }
+        }
+        
+        stage('Build Application') {
+            steps {
+                script {
+                    def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                    
+                    if (params.ENVIRONMENT == 'prod') {
+                        // Production build with API key
+                        withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                            withCredentials([string(credentialsId: 'encom-prod-api-key', variable: 'API_KEY')]) {
+                                sh """
+                                    echo "Building application for ${params.ENVIRONMENT} environment..."
+                                    REACT_APP_ENVIRONMENT=${params.ENVIRONMENT} \\
+                                    REACT_APP_API_KEY=\${API_KEY} \\
+                                    npm run build
+                                    
+                                    echo "Build completed. Size: \$(du -sh build/ | cut -f1)"
+                                """
+                            }
+                        }
+                    } else {
+                        // Development build without API key
+                        withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                            sh """
+                                echo "Building application for ${params.ENVIRONMENT} environment..."
+                                REACT_APP_ENVIRONMENT=${params.ENVIRONMENT} \\
+                                npm run build
+                                
+                                echo "Build completed. Size: \$(du -sh build/ | cut -f1)"
+                            """
+                        }
+                    }
+                }
+                
+                // Archive build artifacts
+                archiveArtifacts artifacts: 'build/**/*'
+            }
+        }
+        
+        stage('Terraform Init') {
+            steps {
+                script {
+                    def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                    
+                    withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                        dir("infrastructure/terraform/environments/${params.ENVIRONMENT}") {
+                            sh '''
+                                echo "Initializing Terraform..."
+                                terraform init
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                    
+                    withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                        dir("infrastructure/terraform/environments/${params.ENVIRONMENT}") {
+                            sh '''
+                                echo "Planning Terraform changes..."
+                                terraform plan -var-file=terraform.tfvars -out=tfplan
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Terraform Apply') {
+            when {
+                expression { params.ACTION == 'apply' }
+            }
+            steps {
+                script {
+                    def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                    
+                    withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                        dir("infrastructure/terraform/environments/${params.ENVIRONMENT}") {
+                            sh '''
+                                echo "Applying Terraform changes..."
+                                terraform apply tfplan
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to S3') {
+            when {
+                expression { params.ACTION == 'apply' }
+            }
+            steps {
+                script {
+                    def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                    
+                    withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                        dir("infrastructure/terraform/environments/${params.ENVIRONMENT}") {
+                            script {
+                                // Get S3 bucket name from Terraform outputs
+                                def bucketName = sh(
+                                    script: 'terraform output -raw frontend_bucket_name',
+                                    returnStdout: true
+                                ).trim()
+                                
+                                echo "Deploying to S3 bucket: ${bucketName}"
+                                
+                                // Sync build files to S3
+                                dir("../../../../") {
+                                    s3Upload bucket: bucketName,
+                                            includePathPattern: '**/*',
+                                            workingDir: 'build',
+                                            path: ''
+                                }
+                                
+                                echo "Frontend deployed successfully to S3!"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Invalidate CloudFront') {
+            when {
+                expression { params.ACTION == 'apply' }
+            }
+            steps {
+                script {
+                    def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                    
+                    withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                        dir("infrastructure/terraform/environments/${params.ENVIRONMENT}") {
+                            script {
+                                try {
+                                    // Get CloudFront distribution ID from Terraform outputs
+                                    def distributionId = sh(
+                                        script: 'terraform output -raw cloudfront_distribution_id',
+                                        returnStdout: true
+                                    ).trim()
+                                    
+                                    echo "Invalidating CloudFront distribution: ${distributionId}"
+                                    
+                                    // Create invalidation
+                                    cfInvalidate(
+                                        distribution: distributionId,
+                                        paths: ['/*']
+                                    )
+                                    
+                                    echo "CloudFront invalidation created successfully"
+                                } catch (Exception e) {
+                                    echo "Warning: CloudFront invalidation failed: ${e.message}"
+                                    // Don't fail the build for invalidation issues
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            script {
+                if (params.ACTION == 'apply') {
+                    echo "Deployment complete!"
+                    echo "Environment: ${params.ENVIRONMENT}"
+                    
+                    // Get frontend URL if deployment was successful
+                    try {
+                        def awsCredentials = params.ENVIRONMENT == 'prod' ? 'aws-encom-prod' : 'aws-encom-dev'
+                        withAWS(credentials: awsCredentials, region: env.AWS_REGION) {
+                            dir("infrastructure/terraform/environments/${params.ENVIRONMENT}") {
+                                def frontendUrl = sh(
+                                    script: 'terraform output -raw frontend_url',
+                                    returnStdout: true
+                                ).trim()
+                                echo "Frontend URL: ${frontendUrl}"
+                            }
+                        }
+                    } catch (Exception e) {
+                        echo "Could not retrieve frontend URL: ${e.message}"
+                    }
+                } else {
+                    echo "Terraform plan completed. Review the plan and run with ACTION=apply to deploy."
+                }
+                
+                // Cleanup
+                try {
+                    cleanWs()
+                } catch (Exception e) {
+                    echo "Warning: Workspace cleanup failed: ${e.message}"
+                }
+            }
+        }
+        failure {
+            echo "Pipeline failed! Check the logs above for errors."
+        }
+        success {
+            echo "Pipeline completed successfully!"
+        }
+    }
+}

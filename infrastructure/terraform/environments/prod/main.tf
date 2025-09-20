@@ -1,0 +1,62 @@
+terraform {
+  required_version = ">= 1.0"
+  
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+  
+  backend "s3" {
+    bucket = "encom-dungeon-terraform-state-prod-us-west-1"
+    key    = "encom-dungeon/prod/terraform.tfstate"
+    region = "us-west-1"
+  }
+}
+
+# Configure AWS Provider
+provider "aws" {
+  region = var.aws_region
+  
+  default_tags {
+    tags = {
+      Project     = "encom-dungeon"
+      Environment = "prod"
+      ManagedBy   = "terraform"
+    }
+  }
+}
+
+# Data sources
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+# Local values
+locals {
+  project_name = "encom-dungeon"
+  environment  = "prod"
+  
+  # Frontend configuration
+  frontend_bucket_name = "${local.project_name}-frontend-${local.environment}-${data.aws_region.current.name}"
+  
+  common_tags = {
+    Project     = local.project_name
+    Environment = local.environment
+    Account     = data.aws_caller_identity.current.account_id
+    Region      = data.aws_region.current.name
+  }
+}
+
+# Frontend Module
+module "frontend" {
+  source = "../../../modules/frontend"
+  
+  bucket_name     = local.frontend_bucket_name
+  index_document  = "index.html"
+  price_class     = "PriceClass_100"  # Cost-optimized
+  
+  tags = merge(local.common_tags, {
+    Component = "frontend"
+  })
+}
