@@ -1,12 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
 import { useGameStore } from '../store/gameStore';
 import { Vector3 } from 'three';
+import { checkWallCollision } from '../utils/collisionUtils';
 
 export const FirstPersonController: React.FC = () => {
   const { camera } = useThree();
-  const { player, updatePlayerPosition, updatePlayerRotation, setPlayer } = useGameStore();
+  const { player, dungeon, updatePlayerPosition, updatePlayerRotation, setPlayer } = useGameStore();
   
   const controlsRef = useRef<any>();
   const moveState = useRef({
@@ -18,6 +19,11 @@ export const FirstPersonController: React.FC = () => {
   
   const velocity = useRef(new Vector3());
   const direction = useRef(new Vector3());
+  
+  // Create hex lookup map for collision detection
+  const hexMap = useMemo(() => {
+    return new Map(dungeon.map(h => [`${h.coordinate.q},${h.coordinate.r}`, h]));
+  }, [dungeon]);
   
   const MOVE_SPEED = 15;
   const DAMPING = 10;
@@ -106,14 +112,26 @@ export const FirstPersonController: React.FC = () => {
     
     velocity.current.lerp(worldDirection, delta * DAMPING);
     
-    const newPosition = new Vector3(...player.position);
+    const currentPosition = new Vector3(...player.position);
+    const newPosition = currentPosition.clone();
     newPosition.add(velocity.current.clone().multiplyScalar(delta));
     
-    // Keep player at reasonable height above ground
-    newPosition.y = Math.max(newPosition.y, 2);
+    // Check for wall collisions and apply sliding
+    const { collision, correctedPosition } = checkWallCollision(
+      currentPosition,
+      newPosition,
+      dungeon,
+      hexMap
+    );
     
-    camera.position.copy(newPosition);
-    camera.position.y = newPosition.y + 1.7;
+    // Use corrected position if there was a collision (includes sliding)
+    const finalPosition = collision ? correctedPosition : newPosition;
+    
+    // Keep player at reasonable height above ground
+    finalPosition.y = Math.max(finalPosition.y, 2);
+    
+    camera.position.copy(finalPosition);
+    camera.position.y = finalPosition.y + 1.7;
     
     // Get the actual direction the camera is facing using direction vector
     const forwardDirection = new Vector3();
@@ -125,7 +143,7 @@ export const FirstPersonController: React.FC = () => {
     // Convert to 0-2π range (always positive)
     const normalizedAngle = angleRadians < 0 ? angleRadians + 2 * Math.PI : angleRadians;
     
-    updatePlayerPosition([newPosition.x, newPosition.y, newPosition.z]);
+    updatePlayerPosition([finalPosition.x, finalPosition.y, finalPosition.z]);
     updatePlayerRotation([camera.rotation.x, normalizedAngle, camera.rotation.z]);
     
     const isMoving = velocity.current.length() > 0.1;

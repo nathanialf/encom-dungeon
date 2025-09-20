@@ -5,9 +5,10 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 ## Features
 
 ### Core Gameplay
-- **First-Person Navigation**: WASD movement with mouse look controls
+- **First-Person Navigation**: WASD movement with mouse look controls and wall collision
 - **Procedural Generation**: Dynamically generated hex-grid based dungeons
 - **3D Exploration**: Fully immersive 3D environment with realistic lighting
+- **Physics-Based Movement**: Wall collision detection with smooth sliding behavior
 
 ### Visual Design
 - **Dynamic Terminal Aesthetic**: Color-cycling terminal effects (green ↔ purple) with retro computer styling
@@ -176,6 +177,7 @@ Textures are located in `/public/textures/`:
 - **Distance-based Culling** - Only render hexes within 300 unit radius
 - **Chunked Updates** - Visibility recalculation every ~2 hex movement
 - **WebGL Optimizations** - High-performance context with disabled antialiasing/shadows
+- **Collision Optimization** - Efficient circle-to-box collision detection with nearby hex filtering
 
 ### Performance Notes
 - **30 FPS Cap** - Some systems may be limited to 30fps due to VSync/power management
@@ -213,6 +215,9 @@ WebGL 2.0 support required for optimal performance.
 - 16%+ code coverage requirement
 
 ### Recent Improvements
+- **Wall Collision System**: Full physics-based collision detection with sliding behavior
+- **Doorway Support**: Proper collision for door frames while allowing passage through openings
+- **Anti-Jitter Physics**: Damped collision response prevents camera bouncing and jittering
 - **Performance Optimization**: Eliminated expensive Map creation in neighbor lookups (1000+ maps/frame → 1 map total)
 - **Color Cycling Effects**: Dynamic terminal color transitions with precise timing
 - **FPS Monitoring**: Real-time performance tracking and debug information
