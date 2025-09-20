@@ -2,7 +2,6 @@ import React, { useMemo, memo } from 'react';
 import * as THREE from 'three';
 import { DungeonHex, WallConfiguration } from '../types';
 import { HEX_SIZE, HEX_HEIGHT_SCALE, hexNeighbors } from '../utils/hexUtils';
-import { useGameStore } from '../store/gameStore';
 import './materials/TerminalMaterials';
 
 // Optimized neighbor type check using the pre-built map

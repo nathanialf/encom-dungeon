@@ -7,7 +7,7 @@ export const TimeUpdater: React.FC = () => {
   const timeRef = useRef(0);
   const frameCountRef = useRef(0);
   const lastFrameTime = useRef(0);
-  const { player, setFps } = useGameStore();
+  const { setFps } = useGameStore();
   const { updateTime } = useTimeStore();
 
   useFrame((state, delta) => {

@@ -2,8 +2,6 @@ import React, { useMemo } from 'react';
 import { DungeonHex } from '../types';
 import { HexTile } from './HexTile';
 import { useGameStore } from '../store/gameStore';
-import { useThree } from '@react-three/fiber';
-import * as THREE from 'three';
 
 interface HexGridProps {
   hexes: DungeonHex[];
@@ -11,7 +9,6 @@ interface HexGridProps {
 
 export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
   const { player } = useGameStore();
-  const { camera } = useThree();
   
   // Create hex lookup map once and memoize it
   const hexMap = useMemo(() => {
@@ -36,7 +33,7 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
       return distanceSquared <= RENDER_DISTANCE_SQUARED;
     });
     // Only recalculate when rounded position changes
-  }, [hexes, Math.round(player.position[0] / 50), Math.round(player.position[2] / 50)]);
+  }, [hexes, player.position]);  // Include player.position dependency as required
   
   return (
     <group name="hex-grid">
