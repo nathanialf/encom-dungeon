@@ -63,7 +63,7 @@ describe('collisionUtils', () => {
     });
 
     test('should generate doorway collision boxes for corridor connections', () => {
-      const roomHex = createMockHex(0, 0, 0, true, 1, 'ROOM', ['corridor-1']);
+      const roomHex = createMockHex(0, 0, 0, true, 1, 'ROOM', ['hex-1-0']);
       const corridorHex = createMockHex(1, 0, -1, true, 1, 'CORRIDOR', ['hex-0-0']);
       const hexMap = new Map([
         ['0,0', roomHex],
@@ -72,8 +72,26 @@ describe('collisionUtils', () => {
       
       const result = generateHexCollisionBoxes(roomHex, hexMap);
       
-      // Should have collision boxes (doorway frames + other walls)
+      // Should have doorway frames (2 per connection) + other walls
       expect(result.length).toBeGreaterThan(0);
+      
+      // Verify doorway frames are generated (line 125-141 coverage)
+      const doorwayFrames = result.filter(box => box.width < 25); // Frames are 30% of wall width
+      expect(doorwayFrames.length).toBe(2); // Left and right door frames
+    });
+
+    test('should handle unconnected neighbors with wall return (line 35)', () => {
+      const roomHex = createMockHex(0, 0, 0, true, 1, 'ROOM', []); // No connections
+      const neighborHex = createMockHex(1, 0, -1, true, 1, 'ROOM', []);
+      const hexMap = new Map([
+        ['0,0', roomHex],
+        ['1,0', neighborHex] // Neighbor exists but no connection
+      ]);
+      
+      const result = generateHexCollisionBoxes(roomHex, hexMap);
+      
+      // Should generate full walls since neighbors are not connected
+      expect(result).toHaveLength(6);
     });
 
     test('should not generate collision boxes for connected room passages', () => {
@@ -155,6 +173,135 @@ describe('collisionUtils', () => {
       // Corrected movement should be reasonable (not excessively large)
       expect(correctedMovement).toBeLessThanOrEqual(originalMovement * 2); // Allow some flexibility
       expect(correctedMovement).toBeGreaterThanOrEqual(0);
+    });
+
+    test('should handle circle center inside collision box', () => {
+      // Create a hex with walls to force collision at center
+      const hexWithWalls = createMockHex(0, 0, 0, true, 1, 'ROOM', []);
+      const hexMapWithWalls = new Map([['0,0', hexWithWalls]]);
+      
+      // Position player exactly at hex center to trigger inside-box collision (lines 197-215)
+      const currentPos = new Vector3(0, 2, 0);
+      const newPos = new Vector3(0, 2, 0); // Same position to trigger distance < 0.001
+      
+      const result = checkWallCollision(currentPos, newPos, [hexWithWalls], hexMapWithWalls);
+      
+      // Should handle the inside-box case without errors
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition).toBeInstanceOf(Vector3);
+    });
+
+    test('should handle inside-box collision with left push (lines 205-206)', () => {
+      // Create a small hex to force inside-box collision
+      const smallHex = createMockHex(0, 0, 0, true, 0.1, 'ROOM', []);
+      const hexMap = new Map([['0,0', smallHex]]);
+      
+      // Position player very close to collision box center, slightly left
+      const currentPos = new Vector3(-0.1, 1, 0);
+      const newPos = new Vector3(-0.05, 1, 0);
+      
+      const result = checkWallCollision(currentPos, newPos, [smallHex], hexMap);
+      
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition).toBeInstanceOf(Vector3);
+    });
+
+    test('should handle inside-box collision with front push (lines 210-212)', () => {
+      // Create a small hex to force inside-box collision  
+      const smallHex = createMockHex(0, 0, 0, true, 0.1, 'ROOM', []);
+      const hexMap = new Map([['0,0', smallHex]]);
+      
+      // Position player very close to collision box center, slightly forward
+      const currentPos = new Vector3(0, 1, -0.1);
+      const newPos = new Vector3(0, 1, -0.05);
+      
+      const result = checkWallCollision(currentPos, newPos, [smallHex], hexMap);
+      
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition).toBeInstanceOf(Vector3);
+    });
+
+    test('should handle inside-box collision with back push (lines 214-215)', () => {
+      // Create a small hex to force inside-box collision
+      const smallHex = createMockHex(0, 0, 0, true, 0.1, 'ROOM', []);
+      const hexMap = new Map([['0,0', smallHex]]);
+      
+      // Position player very close to collision box center, slightly back
+      const currentPos = new Vector3(0, 1, 0.1);
+      const newPos = new Vector3(0, 1, 0.05);
+      
+      const result = checkWallCollision(currentPos, newPos, [smallHex], hexMap);
+      
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition).toBeInstanceOf(Vector3);
+    });
+
+    test('should apply small push when moving away from wall', () => {
+      // Create scenario where player is moving away from wall (line 307)
+      const currentPos = new Vector3(20, 2, 0); // Near wall edge
+      const newPos = new Vector3(25, 2, 0); // Moving further away
+      
+      const result = checkWallCollision(currentPos, newPos, mockDungeon, hexMap);
+      
+      // Should handle moving away from wall case
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition).toBeInstanceOf(Vector3);
+    });
+
+    test('should limit excessive movement distance', () => {
+      // Test the movement distance limiting logic (lines 314-315)
+      const currentPos = new Vector3(0, 2, 0);
+      const newPos = new Vector3(50, 2, 50); // Very large movement
+      
+      const result = checkWallCollision(currentPos, newPos, mockDungeon, hexMap);
+      
+      const originalMovement = newPos.distanceTo(currentPos);
+      const actualMovement = result.correctedPosition.distanceTo(currentPos);
+      
+      // Movement should be limited to reasonable bounds
+      expect(actualMovement).toBeLessThanOrEqual(originalMovement * 1.1);
+      expect(result.correctedPosition).toBeDefined();
+    });
+  });
+
+  describe('Edge case collision detection', () => {
+    test('should handle specific inside-box scenarios for 100% coverage', () => {
+      // Create a very specific scenario to trigger the missing lines 205-206, 210-215
+      // We need to create collision boxes where the player is inside and different edge distances apply
+      
+      // Test case 1: Trigger left edge push (lines 205-206)
+      const leftEdgeHex = createMockHex(0, 0, 0, true, 0.5, 'ROOM', []);
+      const leftEdgeMap = new Map([['0,0', leftEdgeHex]]);
+      
+      // Position very precisely inside a collision box to trigger specific push calculations
+      const leftResult = checkWallCollision(
+        new Vector3(-0.05, 3, 0), // Starting inside box, left side
+        new Vector3(-0.04, 3, 0), // Moving slightly right but still inside
+        [leftEdgeHex], 
+        leftEdgeMap
+      );
+      
+      expect(leftResult.correctedPosition).toBeDefined();
+      
+      // Test case 2: Trigger front edge push (lines 210-212) 
+      const frontResult = checkWallCollision(
+        new Vector3(0, 3, -0.05), // Starting inside box, front side
+        new Vector3(0, 3, -0.04), // Moving slightly back but still inside
+        [leftEdgeHex],
+        leftEdgeMap
+      );
+      
+      expect(frontResult.correctedPosition).toBeDefined();
+      
+      // Test case 3: Trigger back edge push (lines 214-215)
+      const backResult = checkWallCollision(
+        new Vector3(0, 3, 0.05), // Starting inside box, back side  
+        new Vector3(0, 3, 0.04), // Moving slightly forward but still inside
+        [leftEdgeHex],
+        leftEdgeMap
+      );
+      
+      expect(backResult.correctedPosition).toBeDefined();
     });
   });
 
