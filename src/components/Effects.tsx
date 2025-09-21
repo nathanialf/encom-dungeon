@@ -7,7 +7,7 @@ import { TerminalGreen } from './effects/TerminalGreen';
 export const Effects: React.FC = () => {
   return (
     <EffectComposer>
-      <Pixelation pixelSize={6} />
+      <Pixelation pixelSize={4} />
       <TerminalGreen />
       <Bloom
         intensity={0.3}

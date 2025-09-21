@@ -24,11 +24,7 @@ export const TimeUpdater: React.FC = () => {
     if (frameCountRef.current % 10 === 0) {
       setFps(currentFps);
       
-      // Debug: Log FPS and frame time every 60 frames if we're not hitting 60fps
-      if (frameCountRef.current % 60 === 0 && currentFps < 55) {
-        console.log(`Low FPS detected: ${currentFps}fps (${(delta * 1000).toFixed(2)}ms frame time)`);
-        console.log(`RAF timestamp: ${state.clock.elapsedTime}`);
-      }
+      // Debug logging removed to prevent memory accumulation
     }
     
     lastFrameTime.current = delta * 1000;

@@ -38,8 +38,11 @@ export const useDungeonGenerator = () => {
       };
     });
 
+    // Create shared hex map once to avoid creating 1000+ maps
+    const hexMap = new Map(hexes.map(h => [`${h.coordinate.q},${h.coordinate.r}`, h]));
+    
     hexes.forEach((hex) => {
-      hex.hasWalls = determineWalls(hex, hexes);
+      hex.hasWalls = determineWalls(hex, hexes, hexMap);
     });
 
 
@@ -95,7 +98,7 @@ export const useDungeonGenerator = () => {
   }, [convertEncomMapToDungeon, setDungeon, setDungeonMetadata, setLoading, setError]);
 
   useEffect(() => {
-    generateDungeon(1000);
+    generateDungeon(1000); // Increased back to 1000 hexes
   }, [generateDungeon]);
 
   return {

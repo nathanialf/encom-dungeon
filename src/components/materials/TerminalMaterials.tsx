@@ -18,7 +18,7 @@ wallTexture.magFilter = THREE.NearestFilter;
 wallTexture.minFilter = THREE.NearestFilter;
 
 ceilingTexture.wrapS = ceilingTexture.wrapT = THREE.RepeatWrapping;
-ceilingTexture.repeat.set(1, 1);
+ceilingTexture.repeat.set(1, 1); // Single texture instance
 ceilingTexture.offset.set(0, 0);
 ceilingTexture.magFilter = THREE.NearestFilter;
 ceilingTexture.minFilter = THREE.NearestFilter;
@@ -44,6 +44,7 @@ class CeilingMaterial extends THREE.MeshBasicMaterial {
   constructor() {
     super({
       map: ceilingTexture,
+      side: THREE.DoubleSide, // Make ceiling visible from both sides
     });
   }
 }

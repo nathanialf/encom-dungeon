@@ -88,62 +88,25 @@ describe('TimeUpdater', () => {
     expect(mockSetFps).toHaveBeenCalledWith(Math.round(1 / delta)); // ~63
   });
 
-  test('should log debug info for low FPS every 60 frames', () => {
-    render(<TimeUpdater />);
-    
-    const mockState = { clock: { elapsedTime: 2.5 } };
-    const lowFpsDelta = 0.025; // 40 fps (below 55 threshold)
-    
-    // Simulate 60 frames with low FPS
-    for (let i = 1; i <= 60; i++) {
-      frameCallback(mockState, lowFpsDelta);
-    }
-    
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Low FPS detected: 40fps')
-    );
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('RAF timestamp: 2.5')
-    );
-  });
-
-  test('should not log debug info for good FPS', () => {
-    render(<TimeUpdater />);
-    
-    const mockState = { clock: { elapsedTime: 2.5 } };
-    const goodFpsDelta = 0.016; // ~62.5 fps (above 55 threshold)
-    
-    // Simulate 60 frames with good FPS
-    for (let i = 1; i <= 60; i++) {
-      frameCallback(mockState, goodFpsDelta);
-    }
-    
-    expect(consoleSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining('Low FPS detected')
-    );
-  });
-
-  test('should only log debug info on exact 60-frame intervals with low FPS', () => {
+  test('should continue working without debug logging', () => {
     render(<TimeUpdater />);
     
     const mockState = { clock: { elapsedTime: 2.5 } };
     const lowFpsDelta = 0.025; // 40 fps
     
-    // Simulate 59 frames (should not log)
-    for (let i = 1; i <= 59; i++) {
+    // Simulate 60 frames - should not crash and should update FPS
+    for (let i = 1; i <= 60; i++) {
       frameCallback(mockState, lowFpsDelta);
     }
-    expect(consoleSpy).not.toHaveBeenCalled();
     
-    // 60th frame should log
-    frameCallback(mockState, lowFpsDelta);
-    expect(consoleSpy).toHaveBeenCalledTimes(2); // Two console.log calls
+    // Should still update FPS every 10 frames
+    expect(mockSetFps).toHaveBeenCalledTimes(6); // 60/10 = 6 calls
     
-    // 61st frame should not log
-    consoleSpy.mockClear();
-    frameCallback(mockState, lowFpsDelta);
+    // Should not log debug info (removed for memory optimization)
     expect(consoleSpy).not.toHaveBeenCalled();
   });
+
+
 
   test('should accumulate time across multiple frames', () => {
     render(<TimeUpdater />);

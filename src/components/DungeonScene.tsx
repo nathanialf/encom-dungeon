@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo } from 'react';
+import React, { Suspense, useMemo, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { HexGrid } from './HexGrid';
 import { HEX_HEIGHT_SCALE } from '../utils/hexUtils';
@@ -8,6 +8,7 @@ import { LoadingScreen } from './LoadingScreen';
 import { useGameStore } from '../store/gameStore';
 import './materials/TerminalMaterials';
 import { TimeUpdater } from './TimeUpdater';
+
 
 // Scene content component that runs inside Canvas
 const SceneContent: React.FC<{ dungeon: any; dungeonBounds: any }> = ({ dungeon, dungeonBounds }) => {
@@ -39,6 +40,18 @@ const SceneContent: React.FC<{ dungeon: any; dungeonBounds: any }> = ({ dungeon,
 
 export const DungeonScene: React.FC = () => {
   const { dungeon, isLoading } = useGameStore();
+  const [webglContextKey, setWebglContextKey] = useState(0);
+
+  // Listen for WebGL context restoration events
+  useEffect(() => {
+    const handleGlobalContextRestored = () => {
+      console.log('Global context restoration detected. Remounting Canvas...');
+      setWebglContextKey(prev => prev + 1);
+    };
+
+    window.addEventListener('webglcontextrestored', handleGlobalContextRestored);
+    return () => window.removeEventListener('webglcontextrestored', handleGlobalContextRestored);
+  }, []);
 
   // Calculate dungeon bounding box for ceiling
   const dungeonBounds = useMemo(() => {
@@ -79,6 +92,7 @@ export const DungeonScene: React.FC = () => {
       transform: 'translateZ(0)', // Force GPU acceleration
     }}>
       <Canvas
+        key={`webgl-context-${webglContextKey}`} // Force remount on context restoration
         onCreated={({ gl }) => {
           gl.setClearColor('#ffffff');
           // Force 60fps performance optimizations
@@ -89,15 +103,57 @@ export const DungeonScene: React.FC = () => {
           const canvas = gl.domElement;
           // Try to hint browser to use 60fps
           canvas.style.imageRendering = 'pixelated';
+          
+          // Add debug function for testing context loss
+          if (process.env.NODE_ENV === 'development') {
+            (window as any).forceWebGLContextLoss = () => {
+              const ext = gl.getContext().getExtension('WEBGL_lose_context');
+              if (ext) {
+                console.log('Forcing WebGL context loss for testing...');
+                ext.loseContext();
+              }
+            };
+          }
+          
+          // Add WebGL context loss handlers
+          const handleContextLost = (event: Event) => {
+            event.preventDefault(); // Tell browser to attempt context restoration
+            console.warn('WebGL context lost. Stopping rendering and preparing for recovery...');
+            
+            // Stop the render loop immediately
+            gl.setAnimationLoop(null);
+          };
+          
+          const handleContextRestored = () => {
+            console.log('WebGL context restored. Recreating scene...');
+            
+            // Reinitialize WebGL state
+            gl.setClearColor('#ffffff');
+            gl.setPixelRatio(1);
+            gl.shadowMap.enabled = false;
+            
+            // Force a complete re-render by triggering React state update
+            // This will recreate all Three.js objects and shaders
+            setTimeout(() => {
+              const event = new Event('webglcontextrestored');
+              window.dispatchEvent(event);
+            }, 100);
+          };
+          
+          canvas.addEventListener('webglcontextlost', handleContextLost, false);
+          canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
         }}
         gl={{ 
           powerPreference: 'high-performance',
           antialias: false, // Disable antialiasing for performance
           alpha: false, // Disable alpha channel
           stencil: false, // Disable stencil buffer
+          depth: true, // Keep depth buffer for 3D
+          preserveDrawingBuffer: false, // Don't preserve to save memory
+          failIfMajorPerformanceCaveat: false, // Allow fallback
         }}
         frameloop="always" // Force continuous rendering
-        performance={{ min: 0.5 }} // Higher threshold to force 60fps
+        performance={{ min: 0.3 }} // Lower threshold to be more forgiving
         camera={{
           position: [0, 5, 0],
           rotation: [0, 0, 0],

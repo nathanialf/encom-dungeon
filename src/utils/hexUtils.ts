@@ -48,9 +48,9 @@ export function hexNeighbors(hex: HexCoordinate): HexCoordinate[] {
   }));
 }
 
-export function determineWalls(hex: DungeonHex, allHexes: DungeonHex[]): WallConfiguration {
+export function determineWalls(hex: DungeonHex, allHexes: DungeonHex[], hexMap?: Map<string, DungeonHex>): WallConfiguration {
   const neighbors = hexNeighbors(hex.coordinate);
-  const hexMap = new Map(allHexes.map(h => [`${h.coordinate.q},${h.coordinate.r}`, h]));
+  const coordMap = hexMap || new Map(allHexes.map(h => [`${h.coordinate.q},${h.coordinate.r}`, h]));
   
   const walls: WallConfiguration = {
     north: false,
@@ -67,7 +67,7 @@ export function determineWalls(hex: DungeonHex, allHexes: DungeonHex[]): WallCon
   
   neighbors.forEach((neighborCoord, index) => {
     const neighborKey = `${neighborCoord.q},${neighborCoord.r}`;
-    const neighbor = hexMap.get(neighborKey);
+    const neighbor = coordMap.get(neighborKey);
     
     const direction = wallDirections[index];
     
