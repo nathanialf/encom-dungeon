@@ -21,6 +21,7 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 ### User Interface
 - **HUD System**: Real-time debug information with FPS monitoring and player coordinates
 - **Minimap**: Interactive overview of explored areas
+- **Screenshot Capture**: High-quality PNG screenshots with automatic download
 - **Responsive Controls**: Desktop (keyboard/mouse) and touch device (virtual joystick) support
 - **Adaptive Interface**: Touch-optimized button sizing and control instructions
 - **Performance Monitoring**: Real-time FPS display and debug information
@@ -34,6 +35,7 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 | Look Around | `Mouse` | - |
 | Toggle Minimap | `M` | MAP (M) |
 | Toggle Debug Info | `F1` | DEBUG (F1) |
+| Screenshot | `P` | SCREENSHOT (P) |
 | Regenerate Dungeon | `R` | - |
 
 ### Touch Device Controls
@@ -43,6 +45,7 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 | Look Around | Touch & Drag (right side) | - |
 | Toggle Minimap | - | MAP |
 | Toggle Debug Info | - | DEBUG |
+| Screenshot | - | SCREENSHOT |
 
 **Touch Features:**
 - **Portrait Mode**: Joystick positioned at bottom for comfortable thumb access
@@ -268,13 +271,14 @@ Current overall coverage: **73.96%** (427 tests, 1 skipped)
 - ✅ **TerminalMaterials.tsx** - Material loading, texture management, shader compilation
 
 ### Recent Improvements
+- **Screenshot Feature**: High-quality PNG screenshot capture with P hotkey and HUD button
 - **Tablet Support**: Full touch device support with virtual joystick and responsive UI
 - **Portrait Mode**: Adaptive joystick positioning for comfortable tablet use
 - **Wall Collision System**: Full physics-based collision detection with sliding behavior
 - **Doorway Support**: Proper collision for door frames while allowing passage through openings
 - **Anti-Jitter Physics**: Damped collision response prevents camera bouncing and jittering
 - **Performance Optimization**: Eliminated expensive Map creation in neighbor lookups (1000+ maps/frame → 1 map total)
-- **Enhanced Testing**: Comprehensive test coverage improvements with 427 total tests
+- **Enhanced Testing**: Comprehensive test coverage improvements with 428 total tests
 - **Color Cycling Effects**: Dynamic terminal color transitions with precise timing
 - **FPS Monitoring**: Real-time performance tracking and debug information
 - **Render Distance**: Extended to 300 units with efficient culling

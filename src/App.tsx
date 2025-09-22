@@ -50,6 +50,15 @@ function App() {
         event.preventDefault();
         generateDungeon(300);
       }
+      if (event.key === 'p' || event.key === 'P') {
+        event.preventDefault();
+        // Trigger screenshot by finding and clicking the screenshot button
+        const buttons = document.querySelectorAll('button');
+        const screenshot = Array.from(buttons).find(btn => btn.textContent?.includes('SCREENSHOT'));
+        if (screenshot) {
+          screenshot.click();
+        }
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);

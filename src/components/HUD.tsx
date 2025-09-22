@@ -5,7 +5,7 @@ import { TouchControls } from './TouchControls';
 
 export const HUD: React.FC = () => {
   const { player, hud, dungeonMetadata, fps, isTouchDevice } = useGameStore();
-  const lastToggleTime = useRef<{ minimap: number; debug: number }>({ minimap: 0, debug: 0 });
+  const lastToggleTime = useRef<{ minimap: number; debug: number; screenshot: number }>({ minimap: 0, debug: 0, screenshot: 0 });
 
   const handleToggleMinimap = useCallback(() => {
     const now = Date.now();
@@ -22,6 +22,58 @@ export const HUD: React.FC = () => {
       useGameStore.getState().toggleDebugInfo();
     }
   }, []);
+
+  const handleScreenshot = useCallback(() => {
+    const now = Date.now();
+    if (now - lastToggleTime.current.screenshot > 200) { // 200ms debounce
+      lastToggleTime.current.screenshot = now;
+      
+      try {
+        // Find the WebGL canvas (React Three Fiber canvas)
+        const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+        
+        if (canvas) {
+          // Wait for next frame to ensure render is complete
+          requestAnimationFrame(() => {
+            try {
+              // Create data URL directly from canvas
+              const dataURL = canvas.toDataURL('image/png');
+              
+              if (dataURL === 'data:,' || dataURL.length < 100) {
+                console.error('Canvas appears to be empty or not properly rendered');
+                return;
+              }
+              
+              // Handle download differently for touch vs desktop
+              if (isTouchDevice) {
+                // For touch devices, open in new window for easier saving
+                const newWindow = window.open();
+                if (newWindow) {
+                  newWindow.document.write(`<img src="${dataURL}" style="max-width:100%; height:auto;" />`);
+                  newWindow.document.title = 'ENCOM Dungeon Screenshot';
+                }
+              } else {
+                // For desktop, use direct download
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = `encom-dungeon-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }
+            } catch (error) {
+              console.error('Screenshot capture failed:', error);
+            }
+          });
+        } else {
+          console.error('Canvas not found or not accessible');
+        }
+      } catch (error) {
+        console.error('Screenshot failed:', error);
+      }
+    }
+  }, [isTouchDevice]);
 
   const handleTouchMove = useCallback((x: number, y: number) => {
     useGameStore.getState().setTouchInput(x, y);
@@ -131,6 +183,7 @@ export const HUD: React.FC = () => {
         <button
           onClick={handleToggleDebug}
           style={{
+            marginRight: isTouchDevice ? '8px' : '10px',
             padding: isTouchDevice ? '8px 12px' : '5px 10px', // Larger touch targets
             backgroundColor: 'transparent',
             color: '#00ff00',
@@ -143,6 +196,22 @@ export const HUD: React.FC = () => {
           }}
         >
           DEBUG{!isTouchDevice ? ' (F1)' : ''}
+        </button>
+        <button
+          onClick={handleScreenshot}
+          style={{
+            padding: isTouchDevice ? '8px 12px' : '5px 10px', // Larger touch targets
+            backgroundColor: 'transparent',
+            color: '#00ff00',
+            border: '1px solid #00ff00',
+            borderRadius: '2px',
+            fontFamily: 'monospace',
+            cursor: 'pointer',
+            fontSize: isTouchDevice ? '11px' : '12px',
+            minWidth: isTouchDevice ? '60px' : 'auto',
+          }}
+        >
+          SCREENSHOT{!isTouchDevice ? ' (P)' : ''}
         </button>
       </div>
       

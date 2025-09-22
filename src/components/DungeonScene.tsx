@@ -149,7 +149,7 @@ export const DungeonScene: React.FC = () => {
           alpha: false, // Disable alpha channel
           stencil: false, // Disable stencil buffer
           depth: true, // Keep depth buffer for 3D
-          preserveDrawingBuffer: false, // Don't preserve to save memory
+          preserveDrawingBuffer: true, // Enable for screenshot capture
           failIfMajorPerformanceCaveat: false, // Allow fallback
         }}
         frameloop="always" // Force continuous rendering
