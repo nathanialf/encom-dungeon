@@ -20,9 +20,9 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
     const RENDER_DISTANCE = 300; // Restored since effects were the issue
     const playerPos = player.position;
     
-    // Round player position to large chunks to reduce hitching
-    const roundedX = Math.round(playerPos[0] / 50) * 50; // Update every ~2 hexes
-    const roundedZ = Math.round(playerPos[2] / 50) * 50;
+    // Round player position to larger chunks to reduce hitching further
+    const roundedX = Math.round(playerPos[0] / 100) * 100; // Update every ~4 hexes
+    const roundedZ = Math.round(playerPos[2] / 100) * 100;
     
     // Use squared distance to avoid sqrt calculation
     const RENDER_DISTANCE_SQUARED = RENDER_DISTANCE * RENDER_DISTANCE;
@@ -34,8 +34,8 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
       return distanceSquared <= RENDER_DISTANCE_SQUARED;
     });
     
-    // Limit initial render count to prevent WebGL context loss
-    const MAX_INITIAL_HEXES = 100;
+    // Reduce hex count for better performance
+    const MAX_INITIAL_HEXES = 50;
     if (visibleHexes.length > MAX_INITIAL_HEXES) {
       // Sort by distance and take closest hexes first
       return visibleHexes
@@ -64,7 +64,7 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
         />
       ))}
       
-      {/* Centralized wall system - same visible hexes */}
+      {/* Centralized wall system */}
       <CentralWalls hexes={visibleHexes} />
     </group>
   );
