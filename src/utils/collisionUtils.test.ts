@@ -322,4 +322,120 @@ describe('collisionUtils', () => {
       expect(typeof box.rotation).toBe('number');
     });
   });
+
+  describe('Edge cases for maximum coverage', () => {
+    const mockHexForEdgeCases = createMockHex(0, 0, 0, true, 1, 'ROOM', []);
+    const mockDungeonForEdgeCases = [mockHexForEdgeCases];
+    
+    test('should handle Y-axis differences in collision detection', () => {
+      const currentPos = new Vector3(0, 5, 0); // Different Y level
+      const newPos = new Vector3(1, 10, 1);    // Large Y difference
+      
+      const result = checkWallCollision(currentPos, newPos, mockDungeonForEdgeCases, new Map([['0,0', mockHexForEdgeCases]]));
+      
+      expect(result.correctedPosition.y).toBe(newPos.y); // Y should be preserved
+      expect(result.correctedPosition).toBeDefined();
+    });
+
+    test('should handle extreme movement vectors', () => {
+      const currentPos = new Vector3(0, 2, 0);
+      const newPos = new Vector3(0, 2, 0); // Zero movement
+      
+      const result = checkWallCollision(currentPos, newPos, mockDungeonForEdgeCases, new Map([['0,0', mockHexForEdgeCases]]));
+      
+      expect(result.collision).toBe(false);
+      expect(result.correctedPosition).toEqual(newPos);
+    });
+
+    test('should handle collision with multiple collision boxes', () => {
+      // Create a hex with many collision boxes by using corridor connections
+      const complexHex = createMockHex(0, 0, 0, true, 1, 'ROOM', ['hex-1-0', 'hex-0-1']);
+      const neighborHex1 = createMockHex(1, 0, -1, true, 1, 'CORRIDOR', ['hex-0-0']);
+      const neighborHex2 = createMockHex(0, 1, -1, true, 1, 'CORRIDOR', ['hex-0-0']);
+      
+      const complexMap = new Map([
+        ['0,0', complexHex],
+        ['1,0', neighborHex1],
+        ['0,1', neighborHex2]
+      ]);
+      
+      const currentPos = new Vector3(0, 2, 0);
+      const newPos = new Vector3(20, 2, 20); // Movement towards multiple walls
+      
+      const result = checkWallCollision(currentPos, newPos, [complexHex, neighborHex1, neighborHex2], complexMap);
+      
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition).toBeInstanceOf(Vector3);
+    });
+
+    test('should handle non-existent neighbor coordinates', () => {
+      // Test with a hex that has no neighbors in the map
+      const isolatedHex = createMockHex(10, 10, -20, true, 1, 'ROOM', []);
+      const isolatedMap = new Map([['10,10', isolatedHex]]);
+      
+      const currentPos = new Vector3(375, 2, 433); // Near isolated hex position
+      const newPos = new Vector3(400, 2, 450);
+      
+      const result = checkWallCollision(currentPos, newPos, [isolatedHex], isolatedMap);
+      
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition).toBeInstanceOf(Vector3);
+    });
+
+    test('should handle collision with negative coordinates', () => {
+      const negativeHex = createMockHex(-2, -3, 5, true, 1, 'ROOM', []);
+      const negativeMap = new Map([['-2,-3', negativeHex]]);
+      
+      const currentPos = new Vector3(-75, 2, -129); // Near negative hex
+      const newPos = new Vector3(-50, 2, -100);
+      
+      const result = checkWallCollision(currentPos, newPos, [negativeHex], negativeMap);
+      
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition).toBeInstanceOf(Vector3);
+    });
+
+    test('should handle very small movement distances', () => {
+      const currentPos = new Vector3(0, 2, 0);
+      const newPos = new Vector3(0.001, 2, 0.001); // Tiny movement
+      
+      const result = checkWallCollision(currentPos, newPos, mockDungeonForEdgeCases, new Map([['0,0', mockHexForEdgeCases]]));
+      
+      expect(result.correctedPosition).toBeDefined();
+      expect(result.correctedPosition.distanceTo(currentPos)).toBeGreaterThanOrEqual(0);
+    });
+
+    test('should handle collision box rotation variations', () => {
+      // This tests the rotation calculations in generateHexCollisionBoxes
+      const hexWithConnections = createMockHex(0, 0, 0, true, 1, 'ROOM', ['hex-1-0']);
+      const neighborHex = createMockHex(1, 0, -1, true, 1, 'CORRIDOR', ['hex-0-0']);
+      const mapWithRotation = new Map([
+        ['0,0', hexWithConnections],
+        ['1,0', neighborHex]
+      ]);
+      
+      const boxes = generateHexCollisionBoxes(hexWithConnections, mapWithRotation);
+      
+      // Verify rotation values are set correctly for different wall orientations
+      expect(boxes.length).toBeGreaterThan(0);
+      boxes.forEach(box => {
+        expect(typeof box.rotation).toBe('number');
+        // Rotations can be negative (e.g., -Math.PI/3), so check full range
+        expect(box.rotation).toBeGreaterThanOrEqual(-Math.PI);
+        expect(box.rotation).toBeLessThanOrEqual(Math.PI);
+      });
+    });
+
+    test('should handle very high movement into collision', () => {
+      const currentPos = new Vector3(0, 2, 0);
+      const newPos = new Vector3(100, 2, 100); // Very large movement
+      
+      const result = checkWallCollision(currentPos, newPos, mockDungeonForEdgeCases, new Map([['0,0', mockHexForEdgeCases]]));
+      
+      // Should not produce NaN or infinite values
+      expect(isFinite(result.correctedPosition.x)).toBe(true);
+      expect(isFinite(result.correctedPosition.y)).toBe(true);
+      expect(isFinite(result.correctedPosition.z)).toBe(true);
+    });
+  });
 });

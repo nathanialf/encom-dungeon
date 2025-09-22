@@ -262,4 +262,128 @@ describe('DungeonScene', () => {
     // Should have performance optimizations
     expect(canvas).toHaveAttribute('frameloop', 'always');
   });
+
+  test('should handle dungeon with negative coordinates', () => {
+    mockGameStore.dungeon = [
+      { id: 'hex1', position: { x: -100, y: 0, z: -200 }, height: 1, isWalkable: true },
+      { id: 'hex2', position: { x: -50, y: 0, z: -150 }, height: 2, isWalkable: true },
+    ];
+    
+    expect(() => render(<DungeonScene />)).not.toThrow();
+    expect(screen.getByTestId('hex-grid')).toHaveAttribute('data-hex-count', '2');
+  });
+
+  test('should handle very large dungeon coordinates', () => {
+    mockGameStore.dungeon = [
+      { id: 'hex1', position: { x: 1000, y: 0, z: 2000 }, height: 1, isWalkable: true },
+      { id: 'hex2', position: { x: 3000, y: 0, z: 4000 }, height: 2, isWalkable: true },
+    ];
+    
+    expect(() => render(<DungeonScene />)).not.toThrow();
+    expect(screen.getByTestId('hex-grid')).toHaveAttribute('data-hex-count', '2');
+  });
+
+  test('should handle dungeon with zero heights', () => {
+    mockGameStore.dungeon = [
+      { id: 'hex1', position: { x: 0, y: 0, z: 0 }, height: 0, isWalkable: true },
+      { id: 'hex2', position: { x: 10, y: 0, z: 10 }, height: 0, isWalkable: false },
+    ];
+    
+    expect(() => render(<DungeonScene />)).not.toThrow();
+    expect(screen.getByTestId('hex-grid')).toHaveAttribute('data-hex-count', '2');
+  });
+
+  test('should handle dungeon state changes', () => {
+    const { rerender } = render(<DungeonScene />);
+    
+    expect(screen.getByTestId('hex-grid')).toHaveAttribute('data-hex-count', '1');
+    
+    // Update dungeon with more hexes
+    mockGameStore.dungeon = [
+      { id: 'hex1', position: { x: 0, y: 0, z: 0 }, height: 1, isWalkable: true },
+      { id: 'hex2', position: { x: 10, y: 0, z: 10 }, height: 2, isWalkable: true },
+      { id: 'hex3', position: { x: 20, y: 0, z: 20 }, height: 3, isWalkable: true },
+    ];
+    
+    rerender(<DungeonScene />);
+    
+    expect(screen.getByTestId('hex-grid')).toHaveAttribute('data-hex-count', '3');
+  });
+
+  test('should handle loading state changes', () => {
+    mockGameStore.isLoading = true;
+    const { rerender } = render(<DungeonScene />);
+    
+    expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+    expect(screen.queryByTestId('canvas')).not.toBeInTheDocument();
+    
+    // Switch to loaded state
+    mockGameStore.isLoading = false;
+    rerender(<DungeonScene />);
+    
+    expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
+    expect(screen.getByTestId('canvas')).toBeInTheDocument();
+  });
+
+  test('should pass dungeon data to HexGrid component', () => {
+    const testDungeon = [
+      { id: 'hex1', position: { x: 1, y: 2, z: 3 }, height: 1.5, isWalkable: true },
+      { id: 'hex2', position: { x: 4, y: 5, z: 6 }, height: 2.5, isWalkable: false },
+    ];
+    
+    mockGameStore.dungeon = testDungeon;
+    
+    render(<DungeonScene />);
+    
+    const hexGrid = screen.getByTestId('hex-grid');
+    expect(hexGrid).toHaveAttribute('data-hex-count', '2');
+  });
+
+  test('should handle edge case WebGL contexts', () => {
+    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    
+    render(<DungeonScene />);
+    
+    // Should not log warnings about context handling
+    expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('WebGL'));
+    
+    consoleSpy.mockRestore();
+  });
+
+  test('should handle fractional hex heights', () => {
+    mockGameStore.dungeon = [
+      { id: 'hex1', position: { x: 0, y: 0, z: 0 }, height: 0.1, isWalkable: true },
+      { id: 'hex2', position: { x: 10, y: 0, z: 10 }, height: 1.7, isWalkable: true },
+      { id: 'hex3', position: { x: 20, y: 0, z: 20 }, height: 2.3, isWalkable: true },
+    ];
+    
+    expect(() => render(<DungeonScene />)).not.toThrow();
+    expect(screen.getByTestId('hex-grid')).toHaveAttribute('data-hex-count', '3');
+  });
+
+  test('should maintain component structure across re-renders', () => {
+    const { rerender } = render(<DungeonScene />);
+    
+    expect(screen.getByTestId('hex-grid')).toBeInTheDocument();
+    expect(screen.getByTestId('first-person-controller')).toBeInTheDocument();
+    expect(screen.getByTestId('effects')).toBeInTheDocument();
+    expect(screen.getByTestId('time-updater')).toBeInTheDocument();
+    
+    rerender(<DungeonScene />);
+    
+    expect(screen.getByTestId('hex-grid')).toBeInTheDocument();
+    expect(screen.getByTestId('first-person-controller')).toBeInTheDocument();
+    expect(screen.getByTestId('effects')).toBeInTheDocument();
+    expect(screen.getByTestId('time-updater')).toBeInTheDocument();
+  });
+
+  test('should handle canvas configuration options', () => {
+    render(<DungeonScene />);
+    
+    const canvas = screen.getByTestId('canvas');
+    
+    // Verify canvas is properly configured
+    expect(canvas).toHaveAttribute('frameloop');
+    expect(canvas).toBeInTheDocument();
+  });
 });

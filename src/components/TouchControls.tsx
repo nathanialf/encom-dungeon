@@ -191,17 +191,21 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
   const moveKnobX = moveTouch ? moveTouch.currentX - moveTouch.startX : 0;
   const moveKnobY = moveTouch ? moveTouch.currentY - moveTouch.startY : 0;
 
+  // Detect orientation for joystick positioning
+  const isPortrait = window.innerHeight > window.innerWidth;
+  
   return (
     <>
-      {/* Movement Joystick - Center Left */}
+      {/* Movement Joystick - Responsive positioning */}
       <div
         ref={moveJoystickRef}
         onTouchStart={handleMoveStart}
         style={{
           position: 'fixed',
-          top: '50%',
+          top: isPortrait ? 'auto' : '50%',
+          bottom: isPortrait ? '60px' : 'auto',
           left: '30px',
-          transform: 'translateY(-50%)', // Center vertically
+          transform: isPortrait ? 'none' : 'translateY(-50%)',
           width: '120px',
           height: '120px',
           borderRadius: '50%',

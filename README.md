@@ -6,6 +6,7 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 
 ### Core Gameplay
 - **First-Person Navigation**: WASD movement with mouse look controls and wall collision
+- **Touch Device Support**: Tablet-optimized with virtual joystick and touch look controls
 - **Procedural Generation**: Dynamically generated hex-grid based dungeons
 - **3D Exploration**: Fully immersive 3D environment with realistic lighting
 - **Physics-Based Movement**: Wall collision detection with smooth sliding behavior
@@ -20,11 +21,13 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 ### User Interface
 - **HUD System**: Real-time debug information with FPS monitoring and player coordinates
 - **Minimap**: Interactive overview of explored areas
-- **Responsive Controls**: Both keyboard shortcuts and clickable buttons
+- **Responsive Controls**: Desktop (keyboard/mouse) and touch device (virtual joystick) support
+- **Adaptive Interface**: Touch-optimized button sizing and control instructions
 - **Performance Monitoring**: Real-time FPS display and debug information
 
 ## Controls
 
+### Desktop Controls
 | Action | Keyboard | Button |
 |--------|----------|--------|
 | Move | `WASD` | - |
@@ -32,6 +35,20 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 | Toggle Minimap | `M` | MAP (M) |
 | Toggle Debug Info | `F1` | DEBUG (F1) |
 | Regenerate Dungeon | `R` | - |
+
+### Touch Device Controls
+| Action | Touch Input | Button |
+|--------|-------------|--------|
+| Move | Virtual Joystick (left side) | - |
+| Look Around | Touch & Drag (right side) | - |
+| Toggle Minimap | - | MAP |
+| Toggle Debug Info | - | DEBUG |
+
+**Touch Features:**
+- **Portrait Mode**: Joystick positioned at bottom for comfortable thumb access
+- **Landscape Mode**: Joystick positioned at center-left
+- **Multitouch Support**: Simultaneous movement and look controls
+- **Zoom Prevention**: Disabled browser gestures for uninterrupted gameplay
 
 ## Technical Stack
 
@@ -212,10 +229,10 @@ WebGL 2.0 support required for optimal performance.
 - Component tests for UI interactions  
 - Integration tests for 3D scene behavior
 - Performance testing for frame rate stability
-- **81%+ code coverage** with comprehensive test suites
+- **73%+ code coverage** with comprehensive test suites
 
 #### Test Coverage Status
-Current overall coverage: **81.74%** (333 tests, 1 skipped)
+Current overall coverage: **73.96%** (427 tests, 1 skipped)
 
 **100% Coverage Components:**
 - ✅ `hexUtils.ts` - Hexagonal grid utility functions
@@ -251,10 +268,13 @@ Current overall coverage: **81.74%** (333 tests, 1 skipped)
 - ✅ **TerminalMaterials.tsx** - Material loading, texture management, shader compilation
 
 ### Recent Improvements
+- **Tablet Support**: Full touch device support with virtual joystick and responsive UI
+- **Portrait Mode**: Adaptive joystick positioning for comfortable tablet use
 - **Wall Collision System**: Full physics-based collision detection with sliding behavior
 - **Doorway Support**: Proper collision for door frames while allowing passage through openings
 - **Anti-Jitter Physics**: Damped collision response prevents camera bouncing and jittering
 - **Performance Optimization**: Eliminated expensive Map creation in neighbor lookups (1000+ maps/frame → 1 map total)
+- **Enhanced Testing**: Comprehensive test coverage improvements with 427 total tests
 - **Color Cycling Effects**: Dynamic terminal color transitions with precise timing
 - **FPS Monitoring**: Real-time performance tracking and debug information
 - **Render Distance**: Extended to 300 units with efficient culling

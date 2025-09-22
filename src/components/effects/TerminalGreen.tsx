@@ -22,10 +22,10 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   vec3 mediumCyan = vec3(0.0, 0.65, 0.50);
   vec3 brightCyan = vec3(0.004, 0.976, 0.776);
   
-  // Purple palette (#6e59b5)
-  vec3 darkPurple = vec3(0.11, 0.09, 0.18);
-  vec3 mediumPurple = vec3(0.28, 0.23, 0.46);
-  vec3 brightPurple = vec3(0.43, 0.35, 0.71);
+  // Purple palette (#8500ad - brighter purple)
+  vec3 darkPurple = vec3(0.15, 0.0, 0.20);
+  vec3 mediumPurple = vec3(0.35, 0.0, 0.45);
+  vec3 brightPurple = vec3(0.52, 0.0, 0.68);
   
   // Create slow time progression (80 second cycle)
   // 30s hold green, 10s transition to purple, 30s hold purple, 10s transition back to green

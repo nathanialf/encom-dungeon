@@ -21,7 +21,8 @@ const mockGameStoreData = {
     mapSeed: 'test-seed-123',
     generationTime: 234.56
   },
-  fps: 60
+  fps: 60,
+  isTouchDevice: false
 };
 
 jest.mock('../store/gameStore', () => ({
@@ -317,6 +318,145 @@ describe('HUD', () => {
       fontFamily: 'monospace',
       cursor: 'pointer'
     });
+  });
+
+  test('should apply touch device button styles when on touch device', () => {
+    const storeWithTouchDevice = {
+      ...mockGameStoreData,
+      isTouchDevice: true
+    };
+    mockUseGameStore.mockReturnValue(storeWithTouchDevice);
+    
+    render(<HUD />);
+    
+    const mapButton = screen.getByText('MAP'); // Touch devices show just 'MAP'
+    const debugButton = screen.getByText('DEBUG'); // Touch devices show just 'DEBUG'
+    
+    expect(mapButton).toHaveStyle({
+      padding: '8px 12px'
+    });
+    
+    expect(debugButton).toHaveStyle({
+      padding: '8px 12px'
+    });
+  });
+
+  test('should apply desktop button styles when not on touch device', () => {
+    const storeWithDesktop = {
+      ...mockGameStoreData,
+      isTouchDevice: false
+    };
+    mockUseGameStore.mockReturnValue(storeWithDesktop);
+    
+    render(<HUD />);
+    
+    const mapButton = screen.getByText('MAP (M)');
+    const debugButton = screen.getByText('DEBUG (F1)');
+    
+    expect(mapButton).toHaveStyle({
+      padding: '5px 10px'
+    });
+    
+    expect(debugButton).toHaveStyle({
+      padding: '5px 10px'
+    });
+  });
+
+  test('should show touch-specific control instructions', () => {
+    const storeWithTouchDevice = {
+      ...mockGameStoreData,
+      isTouchDevice: true
+    };
+    mockUseGameStore.mockReturnValue(storeWithTouchDevice);
+    
+    render(<HUD />);
+    
+    expect(screen.getByText('Left: Move | Right: Look')).toBeInTheDocument();
+    expect(screen.queryByText('WASD: Move | Mouse: Look')).not.toBeInTheDocument();
+  });
+
+  test('should show desktop-specific control instructions', () => {
+    const storeWithDesktop = {
+      ...mockGameStoreData,
+      isTouchDevice: false
+    };
+    mockUseGameStore.mockReturnValue(storeWithDesktop);
+    
+    render(<HUD />);
+    
+    expect(screen.getByText('WASD: Move | Mouse: Look')).toBeInTheDocument();
+    expect(screen.queryByText('Left: Move | Right: Look')).not.toBeInTheDocument();
+  });
+
+  test('should handle isTouchDevice state changes', () => {
+    // Start with desktop
+    const desktopStore = {
+      ...mockGameStoreData,
+      isTouchDevice: false
+    };
+    mockUseGameStore.mockReturnValue(desktopStore);
+    
+    const { rerender } = render(<HUD />);
+    
+    expect(screen.getByText('WASD: Move | Mouse: Look')).toBeInTheDocument();
+    
+    // Switch to touch device
+    const touchStore = {
+      ...mockGameStoreData,
+      isTouchDevice: true
+    };
+    mockUseGameStore.mockReturnValue(touchStore);
+    
+    rerender(<HUD />);
+    
+    expect(screen.getByText('Left: Move | Right: Look')).toBeInTheDocument();
+    expect(screen.queryByText('WASD: Move | Mouse: Look')).not.toBeInTheDocument();
+  });
+
+  test('should maintain button functionality on touch devices', () => {
+    const storeWithTouchDevice = {
+      ...mockGameStoreData,
+      isTouchDevice: true
+    };
+    mockUseGameStore.mockReturnValue(storeWithTouchDevice);
+    
+    render(<HUD />);
+    
+    const mapButton = screen.getByText('MAP'); // Touch devices show just 'MAP'
+    const debugButton = screen.getByText('DEBUG'); // Touch devices show just 'DEBUG'
+    
+    fireEvent.click(mapButton);
+    fireEvent.click(debugButton);
+    
+    expect(mockToggleMinimap).toHaveBeenCalledTimes(1);
+    expect(mockToggleDebugInfo).toHaveBeenCalledTimes(1);
+  });
+
+  test('should render minimap conditionally on touch devices', () => {
+    const storeWithTouchMinimap = {
+      ...mockGameStoreData,
+      isTouchDevice: true,
+      hud: { ...mockGameStoreData.hud, showMinimap: true }
+    };
+    mockUseGameStore.mockReturnValue(storeWithTouchMinimap);
+    
+    render(<HUD />);
+    
+    expect(screen.getByTestId('minimap')).toBeInTheDocument();
+  });
+
+  test('should render debug info conditionally on touch devices', () => {
+    const storeWithTouchDebug = {
+      ...mockGameStoreData,
+      isTouchDevice: true,
+      hud: { ...mockGameStoreData.hud, showDebugInfo: true }
+    };
+    mockUseGameStore.mockReturnValue(storeWithTouchDebug);
+    
+    render(<HUD />);
+    
+    expect(screen.getByText('FPS: 60')).toBeInTheDocument();
+    expect(screen.getByText('Position: 1.23, 4.56, 7.89')).toBeInTheDocument();
   });
 
   test('should handle component unmounting', () => {
