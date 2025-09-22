@@ -40,6 +40,8 @@ export const Minimap: React.FC = () => {
         width={MAP_SIZE}
         height={MAP_SIZE}
         style={{ position: 'absolute', top: 0, left: 0 }}
+        data-testid="minimap-svg"
+        data-hex-count={dungeon.length}
       >
         {dungeon.map((hex) => {
           // World moves relative to player
@@ -72,6 +74,7 @@ export const Minimap: React.FC = () => {
           fill="#ffffff"
           stroke="#00ff00"
           strokeWidth={2}
+          data-testid="player-marker"
         />
         
         {/* Direction triangle - flip rotation direction */}
@@ -81,6 +84,7 @@ export const Minimap: React.FC = () => {
           stroke="#00ff00"
           strokeWidth={1}
           transform={`rotate(${-rotationDegrees}, ${playerX}, ${playerZ})`}
+          data-testid="player-direction"
         />
       </svg>
       

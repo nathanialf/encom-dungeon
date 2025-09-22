@@ -52,7 +52,7 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
   }, [hexes, player.position]);  // Include player.position dependency as required
   
   return (
-    <group name="hex-grid">
+    <group name="hex-grid" userData={{ hexCount: visibleHexes.length }}>
       {visibleHexes.map((hex) => (
         <HexTile
           key={`${hex.coordinate.q}-${hex.coordinate.r}-${hex.coordinate.s}`}

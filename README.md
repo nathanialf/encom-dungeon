@@ -212,10 +212,10 @@ WebGL 2.0 support required for optimal performance.
 - Component tests for UI interactions  
 - Integration tests for 3D scene behavior
 - Performance testing for frame rate stability
-- **54%+ code coverage** with comprehensive test suites
+- **81%+ code coverage** with comprehensive test suites
 
 #### Test Coverage Status
-Current overall coverage: **53.94%** (218 tests, 1 skipped)
+Current overall coverage: **81.74%** (333 tests, 1 skipped)
 
 **100% Coverage Components:**
 - ✅ `hexUtils.ts` - Hexagonal grid utility functions
@@ -233,8 +233,22 @@ Current overall coverage: **53.94%** (218 tests, 1 skipped)
 - ✅ `TerminalGreen.tsx` - Terminal color cycling effect
 
 **High Coverage Components:**
-- 🟡 `useDungeonGenerator.ts` - 94.28% (dungeon generation logic)
+- 🟡 `useDungeonGenerator.ts` - 94.59% (dungeon generation logic)
 - 🟡 `collisionUtils.ts` - 92.45% (physics and collision detection)
+- 🟡 `Minimap.tsx` - 86.66% (interactive minimap with SVG rendering)
+- 🟡 `TerminalMaterials.tsx` - 85% (Three.js material system)
+- 🟡 `HexGrid.tsx` - 84% (hex-based 3D grid rendering)
+- 🟡 `DungeonScene.tsx` - 73.68% (main 3D scene with WebGL management)
+- 🟡 `HexTile.tsx` - 63.75% (individual hex tile geometry and materials)
+
+**Recent Test Additions:**
+- ✅ **App.tsx** - Error handling, component integration, dungeon generation flows
+- ✅ **DungeonScene.tsx** - Canvas setup, WebGL context management, scene bounds calculation
+- ✅ **FirstPersonController.tsx** - Input handling, movement controls, event listeners
+- ✅ **HexGrid.tsx** - Grid rendering, performance filtering, distance culling
+- ✅ **HexTile.tsx** - Hex geometry, wall generation, lighting systems
+- ✅ **Minimap.tsx** - Coordinate conversion, SVG rendering, player positioning
+- ✅ **TerminalMaterials.tsx** - Material loading, texture management, shader compilation
 
 ### Recent Improvements
 - **Wall Collision System**: Full physics-based collision detection with sliding behavior
