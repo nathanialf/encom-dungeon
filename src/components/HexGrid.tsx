@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { DungeonHex } from '../types';
 import { HexTile } from './HexTile';
+import { CentralWalls } from './CentralWalls';
 import { useGameStore } from '../store/gameStore';
 
 interface HexGridProps {
@@ -53,13 +54,18 @@ export const HexGrid: React.FC<HexGridProps> = ({ hexes }) => {
   
   return (
     <group name="hex-grid" userData={{ hexCount: visibleHexes.length }}>
+      {/* Hex tiles without walls */}
       {visibleHexes.map((hex) => (
         <HexTile
           key={`${hex.coordinate.q}-${hex.coordinate.r}-${hex.coordinate.s}`}
           hex={hex}
           hexMap={hexMap}
+          renderWalls={false}
         />
       ))}
+      
+      {/* Centralized wall system - same visible hexes */}
+      <CentralWalls hexes={visibleHexes} />
     </group>
   );
 };

@@ -41,6 +41,7 @@ function getNeighborTypeOptimized(hex: DungeonHex, direction: keyof WallConfigur
 interface HexTileProps {
   hex: DungeonHex;
   hexMap: Map<string, DungeonHex>;
+  renderWalls?: boolean;
 }
 
 // Shared geometries to prevent memory leaks
@@ -131,7 +132,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', cleanupGeometries);
 }
 
-export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap }) => {
+export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap, renderWalls = true }) => {
   
   const hexGeometry = useMemo(() => {
     const radius = HEX_SIZE;
@@ -195,7 +196,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap }) => {
       )}
       
       {/* North wall - between top-left and top-right pillars */}
-      {hex.isWalkable && (() => {
+      {renderWalls && hex.isWalkable && (() => {
         const neighborType = getNeighborTypeOptimized(hex, 'north', hexMap);
         if (neighborType === 'wall') {
           return (
@@ -221,7 +222,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap }) => {
       })()}
       
       {/* South wall - between bottom-left and bottom-right pillars */}
-      {hex.isWalkable && (() => {
+      {renderWalls && hex.isWalkable && (() => {
         const neighborType = getNeighborTypeOptimized(hex, 'south', hexMap);
         if (neighborType === 'wall') {
           return (
@@ -247,7 +248,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap }) => {
       })()}
       
       {/* Northeast wall - between top-right and right pillars */}
-      {hex.isWalkable && (() => {
+      {renderWalls && hex.isWalkable && (() => {
         const neighborType = getNeighborTypeOptimized(hex, 'northeast', hexMap);
         if (neighborType === 'wall') {
           return (
@@ -274,7 +275,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap }) => {
       })()}
       
       {/* Southeast wall - between right and bottom-right pillars */}
-      {hex.isWalkable && (() => {
+      {renderWalls && hex.isWalkable && (() => {
         const neighborType = getNeighborTypeOptimized(hex, 'southeast', hexMap);
         if (neighborType === 'wall') {
           return (
@@ -301,7 +302,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap }) => {
       })()}
       
       {/* Southwest wall - between bottom-left and left pillars */}
-      {hex.isWalkable && (() => {
+      {renderWalls && hex.isWalkable && (() => {
         const neighborType = getNeighborTypeOptimized(hex, 'southwest', hexMap);
         if (neighborType === 'wall') {
           return (
@@ -328,7 +329,7 @@ export const HexTile: React.FC<HexTileProps> = memo(({ hex, hexMap }) => {
       })()}
       
       {/* Northwest wall - between left and top-left pillars */}
-      {hex.isWalkable && (() => {
+      {renderWalls && hex.isWalkable && (() => {
         const neighborType = getNeighborTypeOptimized(hex, 'northwest', hexMap);
         if (neighborType === 'wall') {
           return (
