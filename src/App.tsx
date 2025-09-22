@@ -8,6 +8,34 @@ function App() {
   const { error } = useGameStore();
   const { generateDungeon } = useDungeonGenerator();
 
+  // Set touch device detection once at app level
+  useEffect(() => {
+    const checkTouchDevice = () => {
+      // Enhanced iPad/tablet detection
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isTabletScreen = window.innerWidth <= 1366 || window.innerHeight <= 1024; // Increased for iPad Pro
+      
+      // iPad-specific detection (iOS 13+ reports as desktop)
+      const isIPad = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
+      // Android tablet detection
+      const isAndroidTablet = /Android/.test(navigator.userAgent) && !/Mobile/.test(navigator.userAgent);
+      
+      // Any touch-capable device with tablet-like dimensions
+      const isTouchTablet = hasTouch && isTabletScreen;
+      
+      const isTouchDevice = isIPad || isAndroidTablet || isTouchTablet;
+      
+      
+      useGameStore.getState().setTouchDevice(isTouchDevice);
+    };
+    
+    checkTouchDevice();
+    window.addEventListener('resize', checkTouchDevice);
+    return () => window.removeEventListener('resize', checkTouchDevice);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'F1') {
@@ -71,7 +99,15 @@ function App() {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ 
+      width: '100vw', 
+      height: '100vh', 
+      overflow: 'hidden',
+      touchAction: 'none', // Disable all touch gestures like zoom, pan
+      userSelect: 'none', // Prevent text selection on touch
+      WebkitUserSelect: 'none',
+      WebkitTouchCallout: 'none', // Disable iOS callout menu
+    }}>
       <DungeonScene />
       <HUD />
     </div>

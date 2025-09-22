@@ -7,7 +7,7 @@ import { checkWallCollision } from '../utils/collisionUtils';
 
 export const FirstPersonController: React.FC = () => {
   const { camera } = useThree();
-  const { player, dungeon, updatePlayerPosition, updatePlayerRotation, setPlayer } = useGameStore();
+  const { player, dungeon, updatePlayerPosition, updatePlayerRotation, setPlayer, touchInput, touchLookDelta, isTouchDevice } = useGameStore();
   
   const controlsRef = useRef<any>();
   const moveState = useRef({
@@ -16,6 +16,7 @@ export const FirstPersonController: React.FC = () => {
     left: false,
     right: false,
   });
+  
   
   const velocity = useRef(new Vector3());
   const direction = useRef(new Vector3());
@@ -33,6 +34,19 @@ export const FirstPersonController: React.FC = () => {
   
   const MOVE_SPEED = 15;
   const DAMPING = 10;
+  
+  // Apply touch look input - horizontal only
+  useEffect(() => {
+    if (!isTouchDevice || !touchLookDelta.x) return;
+    
+    // Apply horizontal rotation only
+    const sensitivity = 0.002;
+    camera.rotation.y -= touchLookDelta.x * sensitivity;
+    
+    // Reset the delta after applying
+    useGameStore.getState().touchLook(0, 0);
+  }, [touchLookDelta, camera, isTouchDevice]);
+
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -87,21 +101,30 @@ export const FirstPersonController: React.FC = () => {
   }, []);
 
   useFrame((state, delta) => {
-    if (!controlsRef.current) return;
+    if (!isTouchDevice && !controlsRef.current) return;
 
     const { forward, backward, left, right } = moveState.current;
+    const { x: touchX, y: touchY } = touchInput;
+    
+    // Check for any movement input (keyboard or touch)
+    const hasMovement = forward || backward || left || right || Math.abs(touchX) > 0.1 || Math.abs(touchY) > 0.1;
     
     // Skip expensive operations if no movement input
-    if (!forward && !backward && !left && !right && velocity.current.length() < 0.01) {
+    if (!hasMovement && velocity.current.length() < 0.01) {
       return;
     }
     
     direction.current.set(0, 0, 0);
     
+    // Keyboard input
     if (forward) direction.current.z -= 1;
     if (backward) direction.current.z += 1;
     if (left) direction.current.x -= 1;
     if (right) direction.current.x += 1;
+    
+    // Touch input (additive to keyboard)
+    direction.current.x += touchX;
+    direction.current.z -= touchY; // TouchControls sends positive Y for forward, subtract to get negative Z (forward direction)
     
     direction.current.normalize();
     direction.current.multiplyScalar(MOVE_SPEED);
@@ -193,9 +216,13 @@ export const FirstPersonController: React.FC = () => {
   });
 
   return (
-    <PointerLockControls
-      ref={controlsRef}
-      camera={camera}
-    />
+    <>
+      {!isTouchDevice && (
+        <PointerLockControls
+          ref={controlsRef}
+          camera={camera}
+        />
+      )}
+    </>
   );
 };

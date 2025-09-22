@@ -15,6 +15,12 @@ interface GameStore extends GameState {
   updatePlayerRotation: (rotation: [number, number, number]) => void;
   toggleMinimap: () => void;
   toggleDebugInfo: () => void;
+  setTouchInput: (x: number, y: number) => void;
+  touchLook: (deltaX: number, deltaY: number) => void;
+  touchInput: { x: number; y: number };
+  touchLookDelta: { x: number; y: number };
+  isTouchDevice: boolean;
+  setTouchDevice: (isTouch: boolean) => void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -49,6 +55,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     showDebugInfo: false,
     showMinimap: true,
   },
+  touchInput: { x: 0, y: 0 },
+  touchLookDelta: { x: 0, y: 0 },
+  isTouchDevice: false,
 
   setPlayer: (player) =>
     set((state) => ({
@@ -102,4 +111,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => ({
       hud: { ...state.hud, showDebugInfo: !state.hud.showDebugInfo },
     })),
+
+  setTouchInput: (x, y) =>
+    set({ touchInput: { x, y } }),
+
+  touchLook: (deltaX, deltaY) =>
+    set({ touchLookDelta: { x: deltaX, y: deltaY } }),
+
+  setTouchDevice: (isTouch) =>
+    set({ isTouchDevice: isTouch }),
 }));

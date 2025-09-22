@@ -23,14 +23,26 @@ const mockGameStore = {
   error: null as string | null,
 };
 
+const mockSetTouchDevice = jest.fn();
+
 jest.mock('./store/gameStore', () => ({
-  useGameStore: () => mockGameStore
+  useGameStore: Object.assign(
+    () => mockGameStore,
+    {
+      getState: () => ({
+        setTouchDevice: mockSetTouchDevice,
+        toggleDebugInfo: jest.fn(),
+        toggleMinimap: jest.fn(),
+      })
+    }
+  )
 }));
 
 describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGameStore.error = null;
+    mockSetTouchDevice.mockClear();
   });
 
   test('should render without crashing', () => {

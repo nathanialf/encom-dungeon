@@ -1,9 +1,10 @@
 import React, { useCallback, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Minimap } from './Minimap';
+import { TouchControls } from './TouchControls';
 
 export const HUD: React.FC = () => {
-  const { player, hud, dungeonMetadata, fps } = useGameStore();
+  const { player, hud, dungeonMetadata, fps, isTouchDevice } = useGameStore();
   const lastToggleTime = useRef<{ minimap: number; debug: number }>({ minimap: 0, debug: 0 });
 
   const handleToggleMinimap = useCallback(() => {
@@ -20,6 +21,14 @@ export const HUD: React.FC = () => {
       lastToggleTime.current.debug = now;
       useGameStore.getState().toggleDebugInfo();
     }
+  }, []);
+
+  const handleTouchMove = useCallback((x: number, y: number) => {
+    useGameStore.getState().setTouchInput(x, y);
+  }, []);
+
+  const handleTouchLook = useCallback((deltaX: number, deltaY: number) => {
+    useGameStore.getState().touchLook(deltaX, deltaY);
   }, []);
 
   return (
@@ -40,9 +49,11 @@ export const HUD: React.FC = () => {
         <div
           style={{
             position: 'absolute',
-            top: '20px',
-            right: '20px',
+            top: isTouchDevice ? '10px' : '20px',
+            right: isTouchDevice ? '10px' : '20px',
             pointerEvents: 'auto',
+            transform: isTouchDevice ? 'scale(0.8)' : 'none', // Slightly smaller on tablets
+            transformOrigin: 'top right',
           }}
         >
           <Minimap />
@@ -53,13 +64,14 @@ export const HUD: React.FC = () => {
         <div
           style={{
             position: 'absolute',
-            top: '20px',
-            left: '20px',
-            padding: '10px',
+            top: isTouchDevice ? '10px' : '20px',
+            left: isTouchDevice ? '10px' : '20px',
+            padding: isTouchDevice ? '8px' : '10px',
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
             border: '1px solid #00ff00',
-            fontSize: '12px',
+            fontSize: isTouchDevice ? '10px' : '12px',
             pointerEvents: 'auto',
+            maxWidth: isTouchDevice ? '200px' : 'none', // Constrain width on tablets
           }}
         >
           <div>FPS: {fps}</div>
@@ -76,54 +88,70 @@ export const HUD: React.FC = () => {
 
       <div
         style={{
-          position: 'absolute',
-          bottom: '20px',
-          right: '20px',
-          padding: '10px',
+          position: 'fixed', // Changed from absolute to fixed for better viewport handling
+          bottom: isTouchDevice ? '20px' : '20px', // Increased bottom margin for tablets
+          right: isTouchDevice ? '20px' : '20px', // Reset right position - we'll move touch controls instead
+          padding: isTouchDevice ? '8px' : '10px',
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
           border: '1px solid #00ff00',
           borderRadius: '4px',
           pointerEvents: 'auto',
+          fontSize: isTouchDevice ? '11px' : '12px',
+          zIndex: 1002, // Ensure it's above touch controls
         }}
       >
         <div style={{ 
-          fontSize: '12px', 
+          fontSize: isTouchDevice ? '9px' : '12px', 
           opacity: 0.7, 
           marginBottom: '10px',
-          textAlign: 'center'
+          textAlign: 'center',
+          lineHeight: isTouchDevice ? '1.1' : 'normal',
+          whiteSpace: isTouchDevice ? 'nowrap' : 'normal',
+          minWidth: isTouchDevice ? '140px' : 'auto',
         }}>
-          WASD: Move | Mouse: Look
+          {isTouchDevice ? 'Left: Move | Right: Look' : 'WASD: Move | Mouse: Look'}
         </div>
         <button
           onClick={handleToggleMinimap}
           style={{
-            marginRight: '10px',
-            padding: '5px 10px',
+            marginRight: isTouchDevice ? '8px' : '10px',
+            padding: isTouchDevice ? '8px 12px' : '5px 10px', // Larger touch targets
             backgroundColor: 'transparent',
             color: '#00ff00',
             border: '1px solid #00ff00',
             borderRadius: '2px',
             fontFamily: 'monospace',
             cursor: 'pointer',
+            fontSize: isTouchDevice ? '11px' : '12px',
+            minWidth: isTouchDevice ? '60px' : 'auto',
           }}
         >
-          MAP (M)
+          MAP{!isTouchDevice ? ' (M)' : ''}
         </button>
         <button
           onClick={handleToggleDebug}
           style={{
-            padding: '5px 10px',
+            padding: isTouchDevice ? '8px 12px' : '5px 10px', // Larger touch targets
             backgroundColor: 'transparent',
             color: '#00ff00',
             border: '1px solid #00ff00',
             borderRadius: '2px',
             fontFamily: 'monospace',
             cursor: 'pointer',
+            fontSize: isTouchDevice ? '11px' : '12px',
+            minWidth: isTouchDevice ? '60px' : 'auto',
           }}
         >
-          DEBUG (F1)
+          DEBUG{!isTouchDevice ? ' (F1)' : ''}
         </button>
       </div>
+      
+      {/* Touch Controls */}
+      <TouchControls 
+        onMove={handleTouchMove}
+        onLook={handleTouchLook}
+      />
+      
     </div>
   );
 };
