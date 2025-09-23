@@ -289,12 +289,14 @@ Current overall coverage: **73.96%** (427 tests, 1 skipped)
 - **Doorway Support**: Proper collision for door frames while allowing passage through openings
 - **Anti-Jitter Physics**: Damped collision response prevents camera bouncing and jittering
 - **Performance Optimization**: Eliminated expensive Map creation in neighbor lookups (1000+ maps/frame → 1 map total)
-- **Enhanced Testing**: Comprehensive test coverage improvements with 428 total tests
+- **Enhanced Testing**: Comprehensive test coverage improvements with 470 total tests
 - **Color Cycling Effects**: Dynamic terminal color transitions with precise timing
 - **FPS Monitoring**: Real-time performance tracking and debug information
 - **Render Distance**: Extended to 300 units with efficient culling
 - **Infrastructure**: Complete DNS setup with CloudFront and Route53
 - **Browser Compatibility**: Optimized WebGL context for high-performance rendering
+- **Touch Controls**: Black-themed virtual joystick for improved visibility on various backgrounds
+- **Minimap Enhancements**: Hexagonal hex markers with transparency and streamlined player indicator
 
 ## License
 

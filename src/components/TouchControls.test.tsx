@@ -122,7 +122,7 @@ describe('TouchControls', () => {
     expect(label).toBeInTheDocument();
     expect(label).toHaveStyle({
       fontSize: '10px',
-      color: '#00ff00',
+      color: '#000000',
       fontFamily: 'monospace',
       opacity: '0.7',
     });
@@ -147,8 +147,8 @@ describe('TouchControls', () => {
     const joystick = screen.getByText('MOVE').parentElement;
     
     expect(joystick).toHaveStyle({
-      backgroundColor: 'rgba(0, 255, 0, 0.2)',
-      border: '2px solid rgba(0, 255, 0, 0.5)',
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
+      border: '2px solid rgba(0, 0, 0, 0.5)',
       pointerEvents: 'auto',
       zIndex: '1001',
     });
@@ -408,8 +408,8 @@ describe('TouchControls', () => {
       width: '120px',
       height: '120px',
       borderRadius: '50%',
-      backgroundColor: 'rgba(0, 255, 0, 0.2)',
-      border: '2px solid rgba(0, 255, 0, 0.5)',
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
+      border: '2px solid rgba(0, 0, 0, 0.5)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -426,8 +426,8 @@ describe('TouchControls', () => {
       width: '40px',
       height: '40px',
       borderRadius: '50%',
-      backgroundColor: 'rgba(0, 255, 0, 0.8)',
-      border: '1px solid #00ff00',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      border: '1px solid #000000',
     });
   });
 
@@ -442,7 +442,7 @@ describe('TouchControls', () => {
       left: '50%',
       transform: 'translateX(-50%)',
       fontSize: '10px',
-      color: '#00ff00',
+      color: '#000000',
       fontFamily: 'monospace',
       opacity: '0.7',
       whiteSpace: 'nowrap',

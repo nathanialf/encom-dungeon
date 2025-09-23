@@ -87,7 +87,7 @@ describe('Minimap', () => {
     
     const svg = screen.getByTestId('minimap-svg');
     expect(svg).toHaveAttribute('data-hex-count', '2'); // Default mock has 2 hexes
-    expect(screen.getByTestId('player-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('player-direction')).toBeInTheDocument();
   });
 
   test('should render different colors for different hex types', () => {
@@ -96,15 +96,15 @@ describe('Minimap', () => {
     // Should render hex tiles with different types
     const svg = screen.getByTestId('minimap-svg');
     expect(svg).toHaveAttribute('data-hex-count', '2');
-    expect(screen.getByTestId('player-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('player-direction')).toBeInTheDocument();
   });
 
-  test('should render player position marker', () => {
+  test('should render player direction indicator', () => {
     render(<Minimap />);
     
-    const playerMarker = screen.getByTestId('player-marker');
-    expect(playerMarker).toBeInTheDocument();
-    expect(playerMarker).toHaveAttribute('fill', '#ffffff');
+    const playerDirection = screen.getByTestId('player-direction');
+    expect(playerDirection).toBeInTheDocument();
+    expect(playerDirection).toHaveAttribute('fill', '#ffffff');
   });
 
   test('should handle empty dungeon', () => {
@@ -117,7 +117,7 @@ describe('Minimap', () => {
     expect(svg).toHaveAttribute('data-hex-count', '0');
     
     // Should still render player marker
-    expect(screen.getByTestId('player-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('player-direction')).toBeInTheDocument();
   });
 
   test('should handle single hex dungeon', () => {
@@ -135,7 +135,7 @@ describe('Minimap', () => {
     
     const svg = screen.getByTestId('minimap-svg');
     expect(svg).toHaveAttribute('data-hex-count', '1');
-    expect(screen.getByTestId('player-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('player-direction')).toBeInTheDocument();
     expect(screen.getByTestId('player-direction')).toBeInTheDocument();
   });
 
@@ -154,7 +154,7 @@ describe('Minimap', () => {
     
     const svg = screen.getByTestId('minimap-svg');
     expect(svg).toHaveAttribute('data-hex-count', '1');
-    expect(screen.getByTestId('player-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('player-direction')).toBeInTheDocument();
   });
 
   test('should render all hexes including non-walkable', () => {
@@ -179,7 +179,7 @@ describe('Minimap', () => {
     
     const svg = screen.getByTestId('minimap-svg');
     expect(svg).toHaveAttribute('data-hex-count', '2');
-    expect(screen.getByTestId('player-marker')).toBeInTheDocument();
+    expect(screen.getByTestId('player-direction')).toBeInTheDocument();
   });
 
   test('should handle CORRIDOR type hexes', () => {

@@ -50,32 +50,29 @@ export const Minimap: React.FC = () => {
           
           if (x < -10 || x > MAP_SIZE + 10 || z < -10 || z > MAP_SIZE + 10) return null;
           
+          // Create hexagon points (6 sides)
+          const size = 6;
+          const hexPoints = [];
+          for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3;
+            const pointX = x + size * Math.cos(angle);
+            const pointY = z + size * Math.sin(angle);
+            hexPoints.push(`${pointX},${pointY}`);
+          }
+
           return (
-            <circle
+            <polygon
               key={`${hex.coordinate.q}-${hex.coordinate.r}`}
-              cx={x}
-              cy={z}
-              r={3}
+              points={hexPoints.join(' ')}
               fill={
                 hex.isWalkable 
                   ? (isCorridorHex(hex) ? '#4169E1' : '#FFD700') // blue for corridors, yellow for rooms
                   : '#ff0000' // red for non-walkable
               }
-              opacity={0.8}
+              opacity={0.4}
             />
           );
         })}
-        
-        {/* Player dot */}
-        <circle
-          cx={playerX}
-          cy={playerZ}
-          r={4}
-          fill="#ffffff"
-          stroke="#00ff00"
-          strokeWidth={2}
-          data-testid="player-marker"
-        />
         
         {/* Direction triangle - flip rotation direction */}
         <polygon
