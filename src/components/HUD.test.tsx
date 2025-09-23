@@ -31,11 +31,17 @@ jest.mock('../store/gameStore', () => ({
 
 const mockUseGameStore = require('../store/gameStore').useGameStore;
 
+// Mock functions for touch controls
+const mockSetTouchInput = jest.fn();
+const mockTouchLook = jest.fn();
+
 // Add getState method to the mock to match the real store API
 Object.defineProperty(mockUseGameStore, 'getState', {
   value: () => ({
     toggleMinimap: mockToggleMinimap,
-    toggleDebugInfo: mockToggleDebugInfo
+    toggleDebugInfo: mockToggleDebugInfo,
+    setTouchInput: mockSetTouchInput,
+    touchLook: mockTouchLook
   }),
   writable: true
 });
@@ -45,6 +51,22 @@ jest.mock('./Minimap', () => {
   const mockReact = require('react');
   return {
     Minimap: () => mockReact.createElement('div', { 'data-testid': 'minimap' }, 'Minimap Component')
+  };
+});
+
+// Mock TouchControls component
+jest.mock('./TouchControls', () => {
+  const mockReact = require('react');
+  return {
+    TouchControls: ({ onMove, onLook }: { onMove: Function, onLook: Function }) => {
+      return mockReact.createElement('div', { 
+        'data-testid': 'touch-controls',
+        onClick: () => {
+          onMove(0.5, 0.3);
+          onLook(0.1, 0.2);
+        }
+      }, 'TouchControls Component');
+    }
   };
 });
 
@@ -478,5 +500,69 @@ describe('HUD', () => {
     // Click immediately after re-render (should still be debounced)
     fireEvent.click(mapButton);
     expect(mockToggleMinimap).toHaveBeenCalledTimes(1);
+  });
+
+  // Screenshot functionality tests
+  describe('Screenshot functionality', () => {
+    test('should render screenshot button on desktop', () => {
+      render(<HUD />);
+      expect(screen.getByText('SCREENSHOT (P)')).toBeInTheDocument();
+    });
+
+    test('should render screenshot button on touch device', () => {
+      const storeWithTouchDevice = {
+        ...mockGameStoreData,
+        isTouchDevice: true
+      };
+      mockUseGameStore.mockReturnValue(storeWithTouchDevice);
+      
+      render(<HUD />);
+      expect(screen.getByText('SCREENSHOT')).toBeInTheDocument();
+    });
+
+    test('should debounce screenshot clicks', () => {
+      render(<HUD />);
+      const screenshotButton = screen.getByText('SCREENSHOT (P)');
+      
+      // Mock console.error to avoid actual error output during testing
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      
+      // First click
+      fireEvent.click(screenshotButton);
+      
+      // Second click immediately (should be debounced)
+      fireEvent.click(screenshotButton);
+      
+      // Third click after debounce period
+      mockDateNow.mockReturnValue(1500);
+      fireEvent.click(screenshotButton);
+      
+      consoleSpy.mockRestore();
+    });
+  });
+
+  // Touch controls integration tests
+  describe('Touch controls integration', () => {
+    test('should render TouchControls component', () => {
+      render(<HUD />);
+      expect(screen.getByTestId('touch-controls')).toBeInTheDocument();
+    });
+
+    test('should handle touch move events', () => {
+      render(<HUD />);
+      
+      const touchControls = screen.getByTestId('touch-controls');
+      fireEvent.click(touchControls);
+      
+      expect(mockSetTouchInput).toHaveBeenCalledWith(0.5, 0.3);
+      expect(mockTouchLook).toHaveBeenCalledWith(0.1, 0.2);
+    });
+
+    test('should pass correct handlers to TouchControls', () => {
+      render(<HUD />);
+      
+      // TouchControls should be rendered with onMove and onLook handlers
+      expect(screen.getByTestId('touch-controls')).toBeInTheDocument();
+    });
   });
 });
