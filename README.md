@@ -261,6 +261,7 @@ Current overall coverage: **73.96%** (427 tests, 1 skipped)
 - ✅ `Pixelation.tsx` - Pixelation effect wrapper component
 - ✅ `PixelationEffect.tsx` - Custom pixelation shader effect
 - ✅ `TerminalGreen.tsx` - Terminal color cycling effect
+- ✅ `TouchControls.tsx` - Touch device controls with virtual joystick and multi-touch support
 
 **High Coverage Components:**
 - 🟡 `useDungeonGenerator.ts` - 94.59% (dungeon generation logic)

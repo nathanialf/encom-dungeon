@@ -5,6 +5,7 @@ import { TouchControls } from './TouchControls';
 
 export const HUD: React.FC = () => {
   const { player, hud, dungeonMetadata, fps, isTouchDevice } = useGameStore();
+  const isPortrait = window.innerHeight > window.innerWidth;
   const lastToggleTime = useRef<{ minimap: number; debug: number; screenshot: number }>({ minimap: 0, debug: 0, screenshot: 0 });
 
   const handleToggleMinimap = useCallback(() => {
@@ -104,7 +105,7 @@ export const HUD: React.FC = () => {
             top: isTouchDevice ? '10px' : '20px',
             right: isTouchDevice ? '10px' : '20px',
             pointerEvents: 'auto',
-            transform: isTouchDevice ? 'scale(0.8)' : 'none', // Slightly smaller on tablets
+            transform: isTouchDevice && isPortrait ? 'scale(0.4)' : isTouchDevice ? 'scale(0.8)' : 'none', // 60% smaller on portrait touch devices
             transformOrigin: 'top right',
           }}
         >

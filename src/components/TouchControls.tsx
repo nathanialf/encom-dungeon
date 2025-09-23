@@ -249,7 +249,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
         </div>
       </div>
 
-      {/* Look Control Area - Right Side */}
+      {/* Look Control Area - Top area in portrait, right side in landscape */}
       <div
         ref={lookAreaRef}
         onTouchStart={handleLookStart}
@@ -257,13 +257,31 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
           position: 'fixed',
           top: '0',
           right: '0',
-          bottom: '0',
-          left: '200px', // Leave space for joystick on left
+          bottom: isPortrait ? '200px' : '0', // Leave space for joystick at bottom in portrait
+          left: isPortrait ? '0' : '200px', // Full width in portrait, leave space for joystick on left in landscape
           backgroundColor: 'transparent',
           pointerEvents: 'auto',
           zIndex: 1000,
         }}
       />
+
+      {/* Additional Look Control Area - Right side of joystick in portrait mode */}
+      {isPortrait && (
+        <div
+          onTouchStart={handleLookStart}
+          style={{
+            position: 'fixed',
+            top: 'auto',
+            bottom: '0',
+            right: '0',
+            height: '200px', // Same height as joystick exclusion zone
+            left: '170px', // Start just right of the joystick (30px + 120px + 20px margin)
+            backgroundColor: 'transparent',
+            pointerEvents: 'auto',
+            zIndex: 1000,
+          }}
+        />
+      )}
     </>
   );
 };
