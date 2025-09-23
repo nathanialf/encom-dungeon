@@ -69,8 +69,8 @@ describe('Minimap', () => {
   test('should render minimap container', () => {
     render(<Minimap />);
     
-    const minimapText = screen.getByText('MINIMAP');
-    expect(minimapText).toBeInTheDocument();
+    const svg = screen.getByTestId('minimap-svg');
+    expect(svg).toBeInTheDocument();
   });
 
   test('should render SVG canvas', () => {
@@ -258,13 +258,6 @@ describe('Minimap', () => {
     expect(polygon).toHaveAttribute('points');
   });
 
-  test('should have minimap label', () => {
-    render(<Minimap />);
-    
-    const minimapLabel = screen.getByText('MINIMAP');
-    expect(minimapLabel).toBeInTheDocument();
-  });
-
   test('should apply correct CSS styles', () => {
     render(<Minimap />);
     
@@ -272,6 +265,6 @@ describe('Minimap', () => {
     const minimapSvg = screen.getByTestId('minimap-svg');
     expect(minimapSvg).toHaveAttribute('width', '350');
     expect(minimapSvg).toHaveAttribute('height', '350');
-    expect(screen.getByText('MINIMAP')).toBeInTheDocument();
+    expect(screen.getByTestId('player-direction')).toBeInTheDocument();
   });
 });

@@ -95,7 +95,7 @@ export const HUD: React.FC = () => {
         pointerEvents: 'none',
         zIndex: 1000,
         fontFamily: 'monospace',
-        color: '#00ff00',
+        color: '#ffffff',
       }}
     >
       {hud.showMinimap && (
@@ -105,7 +105,7 @@ export const HUD: React.FC = () => {
             top: isTouchDevice ? '10px' : '20px',
             right: isTouchDevice ? '10px' : '20px',
             pointerEvents: 'auto',
-            transform: isTouchDevice && isPortrait ? 'scale(0.4)' : isTouchDevice ? 'scale(0.8)' : 'none', // 60% smaller on portrait touch devices
+            transform: isTouchDevice && isPortrait ? 'scale(0.5)' : isTouchDevice ? 'scale(0.8)' : 'none', // 50% smaller on portrait touch devices
             transformOrigin: 'top right',
           }}
         >
@@ -121,7 +121,7 @@ export const HUD: React.FC = () => {
             left: isTouchDevice ? '10px' : '20px',
             padding: isTouchDevice ? '8px' : '10px',
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            border: '1px solid #00ff00',
+            border: '3px solid #ffffff',
             fontSize: isTouchDevice ? '10px' : '12px',
             pointerEvents: 'auto',
             maxWidth: isTouchDevice ? '200px' : 'none', // Constrain width on tablets
@@ -131,7 +131,7 @@ export const HUD: React.FC = () => {
           <div>Position: {player.position[0].toFixed(2)}, {player.position[1].toFixed(2)}, {player.position[2].toFixed(2)}</div>
           <div>Rotation: {player.rotation[0].toFixed(2)}, {player.rotation[1].toFixed(2)}, {player.rotation[2].toFixed(2)}</div>
           <div>Moving: {player.isMoving ? 'Yes' : 'No'}</div>
-          <div style={{ marginTop: '10px', borderTop: '1px solid #00ff00', paddingTop: '5px' }}>
+          <div style={{ marginTop: '10px', borderTop: '1px solid #ffffff', paddingTop: '5px' }}>
             <div>Hexagons: {dungeonMetadata.hexagonCount}</div>
             <div>Map Seed: {dungeonMetadata.mapSeed || 'Unknown'}</div>
             <div>Gen Time: {dungeonMetadata.generationTime.toFixed(2)}ms</div>
@@ -146,7 +146,7 @@ export const HUD: React.FC = () => {
           right: isTouchDevice ? '20px' : '20px', // Reset right position - we'll move touch controls instead
           padding: isTouchDevice ? '8px' : '10px',
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          border: '1px solid #00ff00',
+          border: '3px solid #ffffff',
           borderRadius: '4px',
           pointerEvents: 'auto',
           fontSize: isTouchDevice ? '11px' : '12px',
@@ -170,8 +170,8 @@ export const HUD: React.FC = () => {
             marginRight: isTouchDevice ? '8px' : '10px',
             padding: isTouchDevice ? '8px 12px' : '5px 10px', // Larger touch targets
             backgroundColor: 'transparent',
-            color: '#00ff00',
-            border: '1px solid #00ff00',
+            color: '#ffffff',
+            border: '2px solid #ffffff',
             borderRadius: '2px',
             fontFamily: 'monospace',
             cursor: 'pointer',
@@ -187,8 +187,8 @@ export const HUD: React.FC = () => {
             marginRight: isTouchDevice ? '8px' : '10px',
             padding: isTouchDevice ? '8px 12px' : '5px 10px', // Larger touch targets
             backgroundColor: 'transparent',
-            color: '#00ff00',
-            border: '1px solid #00ff00',
+            color: '#ffffff',
+            border: '2px solid #ffffff',
             borderRadius: '2px',
             fontFamily: 'monospace',
             cursor: 'pointer',
@@ -203,8 +203,8 @@ export const HUD: React.FC = () => {
           style={{
             padding: isTouchDevice ? '8px 12px' : '5px 10px', // Larger touch targets
             backgroundColor: 'transparent',
-            color: '#00ff00',
-            border: '1px solid #00ff00',
+            color: '#ffffff',
+            border: '2px solid #ffffff',
             borderRadius: '2px',
             fontFamily: 'monospace',
             cursor: 'pointer',

@@ -295,8 +295,9 @@ Current overall coverage: **73.96%** (427 tests, 1 skipped)
 - **Render Distance**: Extended to 300 units with efficient culling
 - **Infrastructure**: Complete DNS setup with CloudFront and Route53
 - **Browser Compatibility**: Optimized WebGL context for high-performance rendering
-- **Touch Controls**: Black-themed virtual joystick for improved visibility on various backgrounds
-- **Minimap Enhancements**: Hexagonal hex markers with transparency and streamlined player indicator
+- **Touch Controls**: Black-themed virtual joystick with white borders for enhanced visibility
+- **Minimap Enhancements**: Hexagonal markers with white theme - transparent rooms with borders, solid white corridors
+- **UI Design**: Consistent white color scheme across all interface elements with thicker borders for better contrast
 
 ## License
 

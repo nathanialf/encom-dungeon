@@ -303,8 +303,8 @@ describe('HUD', () => {
     
     expect(mapButton).toHaveStyle({
       backgroundColor: 'transparent',
-      color: '#00ff00',
-      border: '1px solid #00ff00',
+      color: '#ffffff',
+      border: '2px solid #ffffff',
       borderRadius: '2px',
       fontFamily: 'monospace',
       cursor: 'pointer'
@@ -312,8 +312,8 @@ describe('HUD', () => {
     
     expect(debugButton).toHaveStyle({
       backgroundColor: 'transparent',
-      color: '#00ff00',
-      border: '1px solid #00ff00',
+      color: '#ffffff',
+      border: '2px solid #ffffff',
       borderRadius: '2px',
       fontFamily: 'monospace',
       cursor: 'pointer'

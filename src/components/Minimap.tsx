@@ -31,7 +31,7 @@ export const Minimap: React.FC = () => {
         width: `${MAP_SIZE}px`,
         height: `${MAP_SIZE}px`,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        border: '2px solid #00ff00',
+        border: '4px solid #ffffff',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -66,9 +66,11 @@ export const Minimap: React.FC = () => {
               points={hexPoints.join(' ')}
               fill={
                 hex.isWalkable 
-                  ? (isCorridorHex(hex) ? '#4169E1' : '#FFD700') // blue for corridors, yellow for rooms
+                  ? (isCorridorHex(hex) ? '#ffffff' : 'transparent') // white for corridors, transparent for rooms
                   : '#ff0000' // red for non-walkable
               }
+              stroke="#ffffff"
+              strokeWidth={hex.isWalkable && !isCorridorHex(hex) ? "3" : "0"}
               opacity={0.4}
             />
           );
@@ -84,18 +86,6 @@ export const Minimap: React.FC = () => {
           data-testid="player-direction"
         />
       </svg>
-      
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '5px',
-          left: '5px',
-          fontSize: '10px',
-          color: '#00ff00',
-        }}
-      >
-        MINIMAP
-      </div>
     </div>
   );
 };
