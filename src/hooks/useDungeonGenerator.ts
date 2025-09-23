@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { mapService } from '../services/api';
 import { DungeonHex, EncomMapResponse } from '../types';
@@ -6,6 +6,7 @@ import { hexToPosition, determineWalls } from '../utils/hexUtils';
 
 export const useDungeonGenerator = () => {
   const { setDungeon, setDungeonMetadata, setLoading, setError } = useGameStore();
+  const hasGeneratedInitial = useRef(false);
 
   const convertEncomMapToDungeon = useCallback((mapData: EncomMapResponse): DungeonHex[] => {
     
@@ -98,8 +99,12 @@ export const useDungeonGenerator = () => {
   }, [convertEncomMapToDungeon, setDungeon, setDungeonMetadata, setLoading, setError]);
 
   useEffect(() => {
-    generateDungeon(1000); // Increased back to 1000 hexes
-  }, [generateDungeon]);
+    if (!hasGeneratedInitial.current) {
+      hasGeneratedInitial.current = true;
+      generateDungeon(1000); // Increased back to 1000 hexes
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Remove generateDungeon from dependencies to prevent double generation
 
   return {
     generateDungeon,

@@ -178,10 +178,19 @@ npm run build
 - `GENERATE_SOURCEMAP=false` - Disables source maps for production builds
 
 ### Shader Configuration
-The terminal effect shader supports time-based color cycling:
-- **80-second cycle**: 30s green → 10s transition → 30s purple → 10s transition
-- **Time-synchronized**: Connected to global time store for consistent animation
+The terminal effect shader supports seed-based color selection with glitch effects:
+- **Single color per dungeon**: Map seed determines the terminal color theme
+- **Occasional glitches**: Brief brightness/color shifts lasting 1-2 seconds
+- **Screen artifact simulation**: Mimics old CRT monitor flickering
 - **WebGL optimized**: Efficient shader uniforms with minimal CPU overhead
+
+#### Terminal Color Palette
+Each dungeon uses one of these terminal color themes based on map seed:
+- **Green**: `#00b300` (classic terminal green)
+- **Purple**: `#8500ad` (bright retro purple)  
+- **Teal**: `#018c6c` (teal green)
+- **Red**: `#8b0000` (dark red/warning)
+- **Amber**: `#d53600` (orange-amber terminal)
 
 ### Texture Assets
 Textures are located in `/public/textures/`:
