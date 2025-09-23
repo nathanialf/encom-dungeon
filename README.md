@@ -180,8 +180,9 @@ npm run build
 ### Shader Configuration
 The terminal effect shader supports seed-based color selection with glitch effects:
 - **Single color per dungeon**: Map seed determines the terminal color theme
-- **Occasional glitches**: Brief brightness/color shifts lasting 1-2 seconds
-- **Screen artifact simulation**: Mimics old CRT monitor flickering
+- **Subtle glitch system**: Random brightness shifts every 15 seconds lasting 1 second (80%-120% brightness)
+- **Screen artifact simulation**: Mimics old CRT monitor flickering and brightness fluctuations
+- **Seed-based timing**: Each dungeon has unique glitch patterns for variety
 - **WebGL optimized**: Efficient shader uniforms with minimal CPU overhead
 
 #### Terminal Color Palette

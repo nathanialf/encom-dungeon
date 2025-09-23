@@ -2,11 +2,13 @@ import React, { forwardRef } from 'react';
 import { Effect } from 'postprocessing';
 import { Uniform } from 'three';
 import { useGameStore } from '../../store/gameStore';
+import { useTimeStore } from '../../store/timeStore';
 
 const fragmentShader = `
 uniform float intensity;
 uniform float mapSeed;
 uniform float colorIndex;
+uniform float time;
 
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
   // Convert to grayscale first
@@ -53,7 +55,17 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
     terminalColor = bright * (0.8 + 0.4 * ((gray - 0.7) / 0.3));
   }
   
-  outputColor = vec4(terminalColor * intensity, inputColor.a);
+  // Subtle glitch effect - every 15 seconds for 1 second
+  float cycleMod = mod(time, 15.0);
+  float glitchIntensity = max(0.0, cycleMod - 14.0); // 0 for first 14s, then 0-1 for last 1s
+  
+  // Subtle brightness changes during glitch
+  float glitchNoise = sin(time * 10.0) * 0.5 + 0.5; // 0 to 1
+  float glitchBrightness = 0.8 + glitchNoise * 0.4; // 0.8 to 1.2 (subtle range)
+  
+  float brightnessShift = 1.0 + glitchIntensity * (glitchBrightness - 1.0);
+  
+  outputColor = vec4(terminalColor * intensity * brightnessShift, inputColor.a);
 }
 `;
 
@@ -63,7 +75,8 @@ class TerminalGreenEffect extends Effect {
       uniforms: new Map([
         ['intensity', new Uniform(1.0)],
         ['mapSeed', new Uniform(0.0)],
-        ['colorIndex', new Uniform(0.0)]
+        ['colorIndex', new Uniform(0.0)],
+        ['time', new Uniform(0.0)]
       ])
     });
   }
@@ -71,6 +84,7 @@ class TerminalGreenEffect extends Effect {
 
 export const TerminalGreen = forwardRef<TerminalGreenEffect, { intensity?: number }>((props, ref) => {
   const { dungeonMetadata } = useGameStore();
+  const { time } = useTimeStore();
   const effect = React.useMemo(() => new TerminalGreenEffect(), []);
   
   React.useEffect(() => {
@@ -96,6 +110,10 @@ export const TerminalGreen = forwardRef<TerminalGreenEffect, { intensity?: numbe
       effect.uniforms.get('colorIndex')!.value = colorIndex;
     }
   }, [dungeonMetadata.mapSeed, effect]);
+
+  React.useEffect(() => {
+    effect.uniforms.get('time')!.value = time;
+  }, [time, effect]);
 
   return <primitive ref={ref} object={effect} />;
 });
