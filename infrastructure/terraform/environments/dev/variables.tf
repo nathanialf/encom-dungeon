@@ -7,11 +7,11 @@ variable "aws_region" {
 variable "domain_name" {
   description = "Custom domain name for the dev environment"
   type        = string
-  default     = "dev.dungeon.riperoni.com"
+  default     = "dungeon-dev.riperoni.com"
 }
 
 variable "hosted_zone_id" {
-  description = "Route53 hosted zone ID for dev.dungeon.riperoni.com domain"
+  description = "Route53 hosted zone ID for dungeon-dev.riperoni.com domain"
   type        = string
   default     = null
 }
