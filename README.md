@@ -72,6 +72,108 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 - **React Testing Library** - Component testing utilities
 - **React Scripts** - Build tooling and development server
 
+## Infrastructure Architecture
+
+### AWS Architecture Overview
+```
+┌─────────────────────────────────┐  ┌─────────────────────────────────┐
+│             DEV                 │  │            PROD                 │
+├─────────────────────────────────┤  ├─────────────────────────────────┤
+│                                 │  │                                 │
+│  ┌─────────────────────┐       │  │  ┌─────────────────────┐       │
+│  │   CloudFront        │       │  │  │   CloudFront        │       │
+│  │ d1x72w8ik3u49a...   │       │  │  │ d2y83x9jl4v50b...   │       │
+│  │dungeon-dev.riperoni.│       │  │  │ dungeon.riperoni.   │       │
+│  │com ACM Certificate  │       │  │  │ com ACM Certificate │       │
+│  └─────────────────────┘       │  │  └─────────────────────┘       │
+│            │                   │  │            │                   │
+│  ┌─────────────────────┐       │  │  ┌─────────────────────┐       │
+│  │   Origin Access     │       │  │  │   Origin Access     │       │
+│  │   Control (OAC)     │       │  │  │   Control (OAC)     │       │
+│  └─────────────────────┘       │  │  └─────────────────────┘       │
+│            │                   │  │            │                   │
+│  ┌─────────────────────┐       │  │  ┌─────────────────────┐       │
+│  │   S3 Bucket         │       │  │  │   S3 Bucket         │       │
+│  │encom-dungeon-       │       │  │  │encom-dungeon-       │       │
+│  │frontend-dev-us-     │       │  │  │frontend-prod-us-    │       │
+│  │west-1               │       │  │  │west-1               │       │
+│  │Versioning: Enabled  │       │  │  │Versioning: Enabled  │       │
+│  │Encryption: AES256   │       │  │  │Encryption: AES256   │       │
+│  │Public Access: Block │       │  │  │Public Access: Block │       │
+│  └─────────────────────┘       │  │  └─────────────────────┘       │
+│            │                   │  │            │                   │
+│  ┌─────────────────────┐       │  │  ┌─────────────────────┐       │
+│  │   Route53           │       │  │  │   Route53           │       │
+│  │dungeon-dev.riperoni.│       │  │  │ dungeon.riperoni.   │       │
+│  │com A Record → CF    │       │  │  │ com A Record → CF   │       │
+│  │CNAME → Cert Valid   │       │  │  │ CNAME → Cert Valid  │       │
+│  └─────────────────────┘       │  │  └─────────────────────┘       │
+│            │                   │  │            │                   │
+│  ┌─────────────────────┐       │  │  ┌─────────────────────┐       │
+│  │   ACM Certificate   │       │  │  │   ACM Certificate   │       │
+│  │ us-east-1 Region    │       │  │  │ us-east-1 Region    │       │
+│  │ DNS Validation      │       │  │  │ DNS Validation      │       │
+│  └─────────────────────┘       │  │  └─────────────────────┘       │
+└─────────────────────────────────┘  └─────────────────────────────────┘
+
+         ┌─────────────────────┐              ┌─────────────────────┐
+         │   Terraform State   │              │   Terraform State   │
+         │dev-encom-dungeon-   │              │prod-encom-dungeon-  │
+         │terraform-state      │              │terraform-state      │
+         │    (S3 Bucket)      │              │    (S3 Bucket)      │
+         └─────────────────────┘              └─────────────────────┘
+```
+
+### Application Architecture
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│     Users       │───▶│   CloudFront     │───▶│   S3 Hosting    │
+│ (Web Browsers)  │    │   (Global CDN)   │    │   (Static Web)  │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                       ┌──────────────────┐    ┌─────────────────┐
+                       │   API Gateway    │    │   React Three   │
+                       │ (ENCOM Lambda)   │    │   Fiber App     │
+                       └──────────────────┘    └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                       ┌──────────────────┐    ┌─────────────────┐
+                       │ Lambda Functions │    │  WebGL/Three.js │
+                       │ (Map Generation) │    │  3D Rendering   │
+                       └──────────────────┘    └─────────────────┘
+```
+
+### 3D Rendering Architecture
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    React Three Fiber                           │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │   Canvas        │  │  Scene Graph    │  │  Post-Process   │ │
+│  │   WebGL Context │  │  Components     │  │  Effects        │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│                        Three.js Core                           │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │   Geometry      │  │    Materials    │  │    Lighting     │ │
+│  │   - Hex Tiles   │  │  - Terminal     │  │  - Point Lights │ │
+│  │   - Walls       │  │  - PBR Shaders  │  │  - Ambient      │ │
+│  │   - Floors      │  │  - Textures     │  │  - Shadows      │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│                          WebGL                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │    Shaders      │  │     Buffers     │  │    Textures     │ │
+│  │  - Vertex       │  │  - Geometry     │  │  - Floor        │ │
+│  │  - Fragment     │  │  - Index        │  │  - Wall         │ │
+│  │  - Terminal FX  │  │  - Attribute    │  │  - Ceiling      │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ## Architecture
 
 ### State Management
@@ -145,7 +247,7 @@ Creates optimized production build in `/build` directory.
 ### Infrastructure
 The project includes Terraform configuration for AWS deployment:
 - **CloudFront Distribution** - Global CDN with custom domain support
-- **Route53 DNS** - Hosted zones for dev.dungeon.riperoni.com and dungeon.riperoni.com
+- **Route53 DNS** - Hosted zones for dungeon-dev.riperoni.com and dungeon.riperoni.com
 - **ACM Certificates** - SSL/TLS certificates with DNS validation
 - **S3 State Backend** - Terraform state management
 - **Bootstrap Process** - Initial infrastructure setup
