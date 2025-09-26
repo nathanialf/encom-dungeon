@@ -4,11 +4,11 @@ const getApiBaseUrl = (): string => {
   const environment = process.env.REACT_APP_ENVIRONMENT || 'dev';
   
   if (environment === 'prod') {
-    return 'https://3901ff1oz1.execute-api.us-west-1.amazonaws.com/prod';
+    return 'https://encom-api.riperoni.com';
   }
   
-  // Use dev API Gateway endpoint from encom-frontend
-  return 'https://kxt2knsej3.execute-api.us-west-1.amazonaws.com/dev';
+  // Use dev API endpoint with custom domain
+  return 'https://encom-api-dev.riperoni.com';
 };
 
 const getApiKey = (): string | undefined => {

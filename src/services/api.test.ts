@@ -132,7 +132,7 @@ describe('EncomMapService', () => {
       prodService.generateMap(100);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://3901ff1oz1.execute-api.us-west-1.amazonaws.com/prod/api/v1/map/generate',
+        'https://encom-api.riperoni.com/api/v1/map/generate',
         expect.anything()
       );
     });
