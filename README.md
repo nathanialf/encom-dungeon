@@ -42,15 +42,17 @@ A 3D first-person dungeon explorer built with React Three Fiber, featuring proce
 | Action | Touch Input | Button |
 |--------|-------------|--------|
 | Move | Virtual Joystick (left side) | - |
-| Look Around | Touch & Drag (right side) | - |
+| Look Around | Horizontal Look Bar (right side) | - |
 | Toggle Minimap | - | MAP |
 | Toggle Debug Info | - | DEBUG |
 | Screenshot | - | SCREENSHOT |
 
 **Touch Features:**
-- **Portrait Mode**: Joystick positioned at bottom for comfortable thumb access
-- **Landscape Mode**: Joystick positioned at center-left
-- **Multitouch Support**: Simultaneous movement and look controls
+- **Dual Joystick Design**: Circular movement joystick (left) + horizontal look bar (right)
+- **Responsive Positioning**: Adaptive layout for portrait and landscape orientations
+- **Horizontal Look Control**: Pill-shaped horizontal slider for left/right camera rotation
+- **Enhanced Responsiveness**: Exponential scaling for faster movement at extremes (7x multiplier)
+- **Multitouch Support**: Simultaneous movement and look controls with distinct touch identifiers
 - **Zoom Prevention**: Disabled browser gestures for uninterrupted gameplay
 
 ## Technical Stack
@@ -385,13 +387,13 @@ Current overall coverage: **79.35%** statement coverage (85.87% function coverag
 
 ### Recent Improvements
 
-#### Latest Release (Test Coverage Enhancement)
-- **Major Test Coverage Improvement**: Increased overall coverage from ~38% to **79.35%** statement coverage
-- **FirstPersonController.tsx**: Enhanced from ~38% to 47.22% line coverage with comprehensive movement and input testing
-- **HUD.tsx**: Improved from 38.29% to 57.44% line coverage with screenshot functionality and touch controls integration tests
-- **TouchControls.tsx**: Achieved outstanding 93.1% statement coverage with comprehensive touch interaction testing
-- **Minimap.tsx**: Already excellent at 91.3% coverage with full SVG rendering and coordinate conversion tests
-- **Build & CI/CD**: All linting, testing, and build processes passing successfully
+#### Latest Release (Touch Controls Refactor)
+- **Touch Controls Redesign**: Replaced dual-area touch system with intuitive dual joystick design
+- **Joystick Implementation**: Circular movement joystick (left) + horizontal look bar (right) for optimal ergonomics  
+- **Enhanced Responsiveness**: Exponential scaling with 7x multiplier for faster look sensitivity at extremes
+- **Test Suite Updates**: Updated all TouchControls and FirstPersonController tests to match new joystick implementation
+- **Improved Touch UX**: Better visual feedback with pill-shaped look bar and constrained knob movement
+- **Build & CI/CD**: All linting, testing, and build processes passing successfully with 79.35% test coverage maintained
 
 #### Previous Enhancements
 - **Screenshot Feature**: High-quality PNG screenshot capture with P hotkey and HUD button

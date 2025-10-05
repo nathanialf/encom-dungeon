@@ -20,20 +20,11 @@ const mockGameStore = {
   updateCameraRotation: jest.fn(),
   setPlayer: jest.fn(),
   touchInput: { x: 0, y: 0 },
-  touchLookDelta: { x: 0, y: 0 },
   isTouchDevice: false,
-  touchLook: jest.fn(),
 };
 
 jest.mock('../store/gameStore', () => ({
-  useGameStore: Object.assign(
-    () => mockGameStore,
-    {
-      getState: () => ({
-        touchLook: mockGameStore.touchLook,
-      })
-    }
-  )
+  useGameStore: () => mockGameStore
 }));
 
 // Mock collision utils
@@ -323,14 +314,12 @@ describe('FirstPersonController', () => {
     beforeEach(() => {
       mockGameStore.isTouchDevice = true;
       mockGameStore.touchInput = { x: 0, y: 0 };
-      mockGameStore.touchLookDelta = { x: 0, y: 0 };
       jest.clearAllMocks();
     });
 
     afterEach(() => {
       mockGameStore.isTouchDevice = false;
       mockGameStore.touchInput = { x: 0, y: 0 };
-      mockGameStore.touchLookDelta = { x: 0, y: 0 };
     });
 
     test('should not render PointerLockControls on touch devices', () => {
@@ -340,33 +329,6 @@ describe('FirstPersonController', () => {
       render(<FirstPersonController />);
       
       expect(PointerLockControls).not.toHaveBeenCalled();
-    });
-
-    test('should handle touch look input', () => {
-      mockGameStore.touchLookDelta = { x: 0.5, y: 0 };
-      
-      render(<FirstPersonController />);
-      
-      // Touch look should be processed
-      expect(mockGameStore.touchLook).toHaveBeenCalled();
-    });
-
-    test('should process horizontal touch look only', () => {
-      mockGameStore.touchLookDelta = { x: 0.5, y: 0.3 };
-      
-      render(<FirstPersonController />);
-      
-      // Should process x but ignore y for touch devices
-      expect(mockGameStore.touchLook).toHaveBeenCalledWith(0, 0);
-    });
-
-    test('should ignore touch look when no X delta', () => {
-      mockGameStore.touchLookDelta = { x: 0, y: 0.3 };
-      
-      render(<FirstPersonController />);
-      
-      // Should not process when no X movement
-      expect(mockGameStore.touchLook).not.toHaveBeenCalled();
     });
 
     test('should have touch input state available', () => {

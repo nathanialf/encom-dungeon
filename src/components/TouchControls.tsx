@@ -104,26 +104,13 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
     
     if (!availableTouch || lookTouch) return;
 
-    // Don't start look if touch is too close to the joystick
-    const rect = moveJoystickRef.current?.getBoundingClientRect();
-    if (rect) {
-      const joystickCenterX = rect.left + rect.width / 2;
-      const joystickCenterY = rect.top + rect.height / 2;
-      const distanceFromJoystick = Math.sqrt(
-        Math.pow(availableTouch.clientX - joystickCenterX, 2) + 
-        Math.pow(availableTouch.clientY - joystickCenterY, 2)
-      );
-      
-      // Don't start look if within joystick area
-      if (distanceFromJoystick < 180) { // 180px exclusion zone around joystick
-        return;
-      }
-    }
+    const rect = lookAreaRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
     setLookTouch({
       identifier: availableTouch.identifier,
-      startX: availableTouch.clientX,
-      startY: availableTouch.clientY,
+      startX: rect.left + rect.width / 2, // Center of the bar
+      startY: rect.top + rect.height / 2,
       currentX: availableTouch.clientX,
       currentY: availableTouch.clientY,
     });
@@ -135,11 +122,24 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
     const touch = Array.from(event.touches).find(t => t.identifier === lookTouch.identifier);
     if (!touch) return;
 
-    const deltaX = touch.clientX - lookTouch.currentX;
-    const deltaY = touch.clientY - lookTouch.currentY;
+    const rect = lookAreaRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    
+    const barCenterX = rect.left + rect.width / 2;
+    const deltaX = touch.clientX - barCenterX;
+    
+    // Constrain to bar width
+    const maxDistance = rect.width / 2 - 20; // Leave some padding
+    const constrainedDeltaX = Math.max(-maxDistance, Math.min(maxDistance, deltaX));
+    
+    // Convert to normalized value (-1 to 1)
+    const normalizedX = constrainedDeltaX / maxDistance;
     
     setLookTouch(prev => prev ? { ...prev, currentX: touch.clientX, currentY: touch.clientY } : null);
-    onLook(deltaX * 2, deltaY * 2); // Amplify for responsiveness
+    
+    // Send continuous horizontal rotation with exponential scaling for faster movement at extremes
+    const exponentialX = Math.sign(normalizedX) * Math.pow(Math.abs(normalizedX), 1.5);
+    onLook(exponentialX * 35, 0); // Much higher multiplier for responsive looking (7x increase)
   }, [lookTouch, onLook]);
 
   const handleLookEnd = useCallback((event: TouchEvent) => {
@@ -149,7 +149,8 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
     if (!touch) return;
 
     setLookTouch(null);
-  }, [lookTouch]);
+    onLook(0, 0); // Stop looking when released
+  }, [lookTouch, onLook]);
 
   // Add global touch event listeners and prevent zoom
   useEffect(() => {
@@ -191,6 +192,16 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
   const moveKnobX = moveTouch ? moveTouch.currentX - moveTouch.startX : 0;
   const moveKnobY = moveTouch ? moveTouch.currentY - moveTouch.startY : 0;
 
+  // Calculate look bar knob position
+  const lookKnobX = lookTouch && lookAreaRef.current ? 
+    (() => {
+      const rect = lookAreaRef.current.getBoundingClientRect();
+      const barCenterX = rect.left + rect.width / 2;
+      const deltaX = lookTouch.currentX - barCenterX;
+      const maxDistance = rect.width / 2 - 20;
+      return Math.max(-maxDistance, Math.min(maxDistance, deltaX));
+    })() : 0;
+
   // Detect orientation for joystick positioning
   const isPortrait = window.innerHeight > window.innerWidth;
   
@@ -203,7 +214,7 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
         style={{
           position: 'fixed',
           top: isPortrait ? 'auto' : '50%',
-          bottom: isPortrait ? '60px' : 'auto',
+          bottom: isPortrait ? '60px' : 'auto', // Back to original lower position
           left: '30px',
           transform: isPortrait ? 'none' : 'translateY(-50%)',
           width: '120px',
@@ -249,39 +260,57 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
         </div>
       </div>
 
-      {/* Look Control Area - Top area in portrait, right side in landscape */}
+      {/* Look Bar Joystick - Horizontal bar for looking left/right, positioned at bottom */}
       <div
         ref={lookAreaRef}
         onTouchStart={handleLookStart}
         style={{
           position: 'fixed',
-          top: '0',
-          right: '0',
-          bottom: isPortrait ? '200px' : '0', // Leave space for joystick at bottom in portrait
-          left: isPortrait ? '0' : '200px', // Full width in portrait, leave space for joystick on left in landscape
-          backgroundColor: 'transparent',
+          bottom: isPortrait ? '120px' : '60px', // Aligned with movement joystick, higher to avoid HUD overlap
+          right: isPortrait ? '20px' : '30px',
+          left: isPortrait ? '170px' : 'auto', // Start after movement joystick in portrait (30px + 120px + 20px margin)
+          width: isPortrait ? 'calc(100% - 190px)' : '180px', // Adjust width to not overlap with movement joystick
+          height: '50px', // Slightly smaller than movement joystick
+          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          border: '4px solid #ffffff',
+          borderRadius: '25px', // Pill shape
           pointerEvents: 'auto',
-          zIndex: 1000,
+          zIndex: 1001,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
-      />
-
-      {/* Additional Look Control Area - Right side of joystick in portrait mode */}
-      {isPortrait && (
+      >
+        {/* Look Bar Knob */}
         <div
-          onTouchStart={handleLookStart}
           style={{
-            position: 'fixed',
-            top: 'auto',
-            bottom: '0',
-            right: '0',
-            height: '200px', // Same height as joystick exclusion zone
-            left: '170px', // Start just right of the joystick (30px + 120px + 20px margin)
-            backgroundColor: 'transparent',
-            pointerEvents: 'auto',
-            zIndex: 1000,
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            border: '2px solid #ffffff',
+            transform: `translateX(${lookKnobX}px)`,
+            transition: lookTouch ? 'none' : 'transform 0.2s ease-out',
           }}
         />
-      )}
+        
+        {/* Look label */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-25px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: '10px',
+            color: '#ffffff',
+            fontFamily: 'monospace',
+            opacity: 0.7,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          LOOK
+        </div>
+      </div>
     </>
   );
 };

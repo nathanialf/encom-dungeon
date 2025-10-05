@@ -95,23 +95,31 @@ describe('TouchControls', () => {
     });
   });
 
-  test('should render look control area', () => {
+  test('should render look control bar', () => {
     render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    // Find the look area (invisible overlay on the right)
-    const elements = document.querySelectorAll('[style*="position: fixed"]');
-    const lookArea = Array.from(elements).find(el => 
-      el.getAttribute('style')?.includes('right: 0') &&
-      el.getAttribute('style')?.includes('left: 200px')
-    );
+    // Find the look bar by its LOOK label
+    const lookBar = screen.getByText('LOOK').parentElement;
     
-    expect(lookArea).toBeInTheDocument();
-    expect(lookArea).toHaveStyle({
+    expect(lookBar).toBeInTheDocument();
+    expect(lookBar).toHaveStyle({
       position: 'fixed',
-      top: '0',
-      right: '0',
-      bottom: '0',
-      left: '200px',
+      borderRadius: '25px', // Pill shape
+      height: '50px',
+    });
+  });
+
+  test('should render look bar knob', () => {
+    render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
+    
+    const lookBar = screen.getByText('LOOK').parentElement;
+    const knob = lookBar?.querySelector('div[style*="width: 40px"]');
+    
+    expect(knob).toBeInTheDocument();
+    expect(knob).toHaveStyle({
+      width: '40px',
+      height: '40px',
+      borderRadius: '50%',
     });
   });
 
@@ -197,17 +205,17 @@ describe('TouchControls', () => {
     expect(mockRemoveEventListener).toHaveBeenCalledWith('dblclick', expect.any(Function));
   });
 
-  test('should have transparent look area', () => {
+  test('should have semi-transparent look bar', () => {
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    // Look area should be the second child (after joystick)
-    const lookArea = container.children[1];
+    // Look bar should be the second child (after joystick)
+    const lookBar = container.children[1];
     
-    expect(lookArea).toBeInTheDocument();
-    expect(lookArea).toHaveStyle({
-      backgroundColor: 'transparent',
+    expect(lookBar).toBeInTheDocument();
+    expect(lookBar).toHaveStyle({
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
       pointerEvents: 'auto',
-      zIndex: '1000',
+      zIndex: '1001',
     });
   });
 
@@ -222,10 +230,10 @@ describe('TouchControls', () => {
     expect(firstChild).toHaveStyle({ position: 'fixed' });
     expect(firstChild).toHaveStyle({ borderRadius: '50%' });
     
-    // Second child should be the look area
+    // Second child should be the look bar
     const secondChild = container.children[1];
     expect(secondChild).toHaveStyle({ position: 'fixed' });
-    expect(secondChild).toHaveStyle({ backgroundColor: 'transparent' });
+    expect(secondChild).toHaveStyle({ borderRadius: '25px' });
   });
 
   test('should handle prop functions correctly', () => {
@@ -256,10 +264,10 @@ describe('TouchControls', () => {
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
     const joystick = screen.getByText('MOVE').parentElement;
-    const lookArea = container.children[1]; // Second child is look area
+    const lookBar = container.children[1]; // Second child is look bar
     
     expect(joystick).toHaveStyle({ zIndex: '1001' });
-    expect(lookArea).toHaveStyle({ zIndex: '1000' });
+    expect(lookBar).toHaveStyle({ zIndex: '1001' });
   });
 
   test('should handle empty callback functions', () => {
@@ -278,7 +286,6 @@ describe('TouchControls', () => {
     const joystick = screen.getByText('MOVE').parentElement;
     
     expect(joystick).toHaveStyle({
-      top: 'auto',
       bottom: '60px',
       transform: 'none',
     });
@@ -295,68 +302,55 @@ describe('TouchControls', () => {
     
     expect(joystick).toHaveStyle({
       top: '50%',
-      bottom: 'auto',
       transform: 'translateY(-50%)',
     });
   });
 
-  test('should render additional look area in portrait mode', () => {
-    // Mock portrait orientation
+  test('should always render exactly two controls', () => {
+    // Test portrait orientation
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 800 });
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 600 });
     
-    const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
+    const { container, rerender } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    // Should have 3 children in portrait: joystick + 2 look areas
-    expect(container.children).toHaveLength(3);
+    // Should have 2 children: joystick + look bar
+    expect(container.children).toHaveLength(2);
     
-    // Third child should be the additional look area
-    const additionalLookArea = container.children[2];
-    expect(additionalLookArea).toHaveStyle({
-      position: 'fixed',
-      bottom: '0',
-      right: '0',
-      height: '200px',
-      left: '170px',
-    });
-  });
-
-  test('should not render additional look area in landscape mode', () => {
-    // Mock landscape orientation
+    // Test landscape orientation
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 600 });
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 800 });
     
-    const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
+    rerender(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    // Should have 2 children in landscape: joystick + 1 look area
+    // Should still have 2 children: joystick + look bar
     expect(container.children).toHaveLength(2);
   });
 
-  test('should configure look area dimensions correctly for portrait', () => {
+  test('should configure look bar dimensions correctly for portrait', () => {
     // Mock portrait orientation
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 800 });
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 600 });
     
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    const mainLookArea = container.children[1];
-    expect(mainLookArea).toHaveStyle({
-      bottom: '200px', // Leave space for joystick
-      left: '0', // Full width
+    const lookBar = container.children[1];
+    expect(lookBar).toHaveStyle({
+      bottom: '120px', // Above joystick
+      left: '170px', // After joystick
     });
   });
 
-  test('should configure look area dimensions correctly for landscape', () => {
+  test('should configure look bar dimensions correctly for landscape', () => {
     // Mock landscape orientation
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 600 });
     Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 800 });
     
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    const lookArea = container.children[1];
-    expect(lookArea).toHaveStyle({
-      bottom: '0', // Full height
-      left: '200px', // Leave space for joystick
+    const lookBar = container.children[1];
+    expect(lookBar).toHaveStyle({
+      bottom: '60px', // Same level as joystick
+      width: '180px', // Fixed width in landscape
     });
   });
 
@@ -453,20 +447,20 @@ describe('TouchControls', () => {
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
     const joystick = screen.getByText('MOVE').parentElement;
-    const lookArea = container.children[1];
+    const lookBar = container.children[1];
     
     expect(joystick).toHaveStyle({ zIndex: '1001' });
-    expect(lookArea).toHaveStyle({ zIndex: '1000' });
+    expect(lookBar).toHaveStyle({ zIndex: '1001' });
   });
 
   test('should enable pointer events for interactive elements', () => {
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
     const joystick = screen.getByText('MOVE').parentElement;
-    const lookArea = container.children[1];
+    const lookBar = container.children[1];
     
     expect(joystick).toHaveStyle({ pointerEvents: 'auto' });
-    expect(lookArea).toHaveStyle({ pointerEvents: 'auto' });
+    expect(lookBar).toHaveStyle({ pointerEvents: 'auto' });
   });
 
   test('should handle component unmounting cleanly', () => {
@@ -484,7 +478,7 @@ describe('TouchControls', () => {
     
     const { container, rerender } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    expect(container.children).toHaveLength(2); // No additional look area
+    expect(container.children).toHaveLength(2); // Joystick + look bar
     
     // Switch to portrait
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 800 });
@@ -492,7 +486,7 @@ describe('TouchControls', () => {
     
     rerender(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    expect(container.children).toHaveLength(3); // Additional look area appears
+    expect(container.children).toHaveLength(2); // Still joystick + look bar
   });
 
   test('should maintain consistent styling across orientations', () => {
@@ -540,7 +534,7 @@ describe('TouchControls', () => {
   test('should handle look touch start event', () => {
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
-    const lookArea = container.children[1] as HTMLElement;
+    const lookBar = container.children[1] as HTMLElement;
     
     // Create mock touches outside joystick area
     const mockTouches = [
@@ -548,18 +542,18 @@ describe('TouchControls', () => {
         identifier: 2,
         clientX: 400, // Far from joystick
         clientY: 100,
-        target: lookArea,
+        target: lookBar,
       }
     ];
 
-    // Fire touch start event on look area
-    fireEvent.touchStart(lookArea, {
+    // Fire touch start event on look bar
+    fireEvent.touchStart(lookBar, {
       touches: mockTouches,
       preventDefault: jest.fn(),
     });
 
-    expect(lookArea).toBeInTheDocument();
-    expect(lookArea).toHaveStyle({ backgroundColor: 'transparent' });
+    expect(lookBar).toBeInTheDocument();
+    expect(lookBar).toHaveStyle({ backgroundColor: 'rgba(0, 0, 0, 0.2)' });
   });
 
   test('should handle touch move events using captured handlers', () => {
@@ -771,8 +765,8 @@ describe('TouchControls', () => {
 
     // Start look touch
     const { container } = render(<TouchControls onMove={jest.fn()} onLook={jest.fn()} />);
-    const lookArea = container.children[1] as HTMLElement;
-    fireEvent.touchStart(lookArea, {
+    const lookBar = container.children[1] as HTMLElement;
+    fireEvent.touchStart(lookBar, {
       touches: [{
         identifier: 2,
         clientX: 400,
@@ -868,15 +862,15 @@ describe('TouchControls', () => {
     expect(rect.top).toBe(200);
   });
 
-  test('should have refs for joystick and look area', () => {
+  test('should have refs for joystick and look bar', () => {
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
     const joystick = screen.getByText('MOVE').parentElement;
-    const lookArea = container.children[1];
+    const lookBar = container.children[1];
     
     // Elements should be rendered and accessible
     expect(joystick).toBeInTheDocument();
-    expect(lookArea).toBeInTheDocument();
+    expect(lookBar).toBeInTheDocument();
   });
 
   test('should handle window resize detection', () => {
@@ -957,8 +951,8 @@ describe('TouchControls', () => {
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
     // Start a look touch
-    const lookArea = container.children[1] as HTMLElement;
-    fireEvent.touchStart(lookArea, {
+    const lookBar = container.children[1] as HTMLElement;
+    fireEvent.touchStart(lookBar, {
       touches: [{
         identifier: 2,
         clientX: 400,
@@ -980,7 +974,7 @@ describe('TouchControls', () => {
     capturedEventHandlers['touchend'].forEach(handler => handler(mockTouchEvent));
     
     // Test passes if no errors are thrown during look touch end handling
-    expect(lookArea).toBeInTheDocument();
+    expect(lookBar).toBeInTheDocument();
   });
 
   test('should handle double-click zoom prevention using captured handler', () => {
@@ -1003,8 +997,8 @@ describe('TouchControls', () => {
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
     // Start a look touch
-    const lookArea = container.children[1] as HTMLElement;
-    fireEvent.touchStart(lookArea, {
+    const lookBar = container.children[1] as HTMLElement;
+    fireEvent.touchStart(lookBar, {
       touches: [{
         identifier: 2,
         clientX: 400,
@@ -1026,6 +1020,6 @@ describe('TouchControls', () => {
     capturedEventHandlers['touchend'].forEach(handler => handler(mockTouchEvent));
     
     // Test passes if no errors are thrown when touch is not found
-    expect(lookArea).toBeInTheDocument();
+    expect(lookBar).toBeInTheDocument();
   });
 });

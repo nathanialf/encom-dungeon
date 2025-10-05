@@ -35,18 +35,8 @@ export const FirstPersonController: React.FC = () => {
   const MOVE_SPEED = 15;
   const DAMPING = 10;
   
-  // Apply touch look input - horizontal only
-  useEffect(() => {
-    if (!isTouchDevice || !touchLookDelta.x) return;
-    
-    // Apply horizontal rotation only
-    const sensitivity = 0.002;
-    camera.rotation.y -= touchLookDelta.x * sensitivity;
-    
-    // Reset the delta after applying
-    useGameStore.getState().touchLook(0, 0);
-  }, [touchLookDelta, camera, isTouchDevice]);
-
+  // Reference to track last look input for cleanup
+  const lastLookInputRef = useRef(0);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -102,6 +92,18 @@ export const FirstPersonController: React.FC = () => {
 
   useFrame((state, delta) => {
     if (!isTouchDevice && !controlsRef.current) return;
+
+    // Handle continuous look input from the bar joystick
+    if (isTouchDevice && Math.abs(touchLookDelta.x) > 0.01) {
+      const sensitivity = 0.05; // Responsive feel for bar joystick
+      const rotationSpeed = touchLookDelta.x * sensitivity * delta;
+      camera.rotation.y -= rotationSpeed;
+      lastLookInputRef.current = touchLookDelta.x;
+    } else if (Math.abs(lastLookInputRef.current) > 0.01) {
+      // Clear the input when joystick is released
+      lastLookInputRef.current = 0;
+      useGameStore.getState().touchLook(0, 0);
+    }
 
     const { forward, backward, left, right } = moveState.current;
     const { x: touchX, y: touchY } = touchInput;
