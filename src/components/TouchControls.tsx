@@ -202,8 +202,10 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
       return Math.max(-maxDistance, Math.min(maxDistance, deltaX));
     })() : 0;
 
-  // Detect orientation for joystick positioning
+  // Detect orientation and device size for joystick positioning
   const isPortrait = window.innerHeight > window.innerWidth;
+  const isTabletSize = Math.min(window.innerWidth, window.innerHeight) >= 768; // iPad mini and larger
+  const isPortraitPhone = isPortrait && !isTabletSize;
   
   return (
     <>
@@ -213,10 +215,10 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
         onTouchStart={handleMoveStart}
         style={{
           position: 'fixed',
-          top: isPortrait ? 'auto' : '50%',
-          bottom: isPortrait ? '60px' : 'auto', // Back to original lower position
+          top: isPortraitPhone ? 'auto' : (isPortrait ? '60%' : '50%'), // Bottom for phones, centered for tablets/landscape
+          bottom: isPortraitPhone ? '60px' : 'auto',
           left: '30px',
-          transform: isPortrait ? 'none' : 'translateY(-50%)',
+          transform: isPortraitPhone ? 'none' : 'translateY(-50%)', // No transform for phones, center for others
           width: '120px',
           height: '120px',
           borderRadius: '50%',
@@ -266,10 +268,12 @@ export const TouchControls: React.FC<TouchControlsProps> = ({ onMove, onLook }) 
         onTouchStart={handleLookStart}
         style={{
           position: 'fixed',
-          bottom: isPortrait ? '120px' : '60px', // Aligned with movement joystick, higher to avoid HUD overlap
-          right: isPortrait ? '20px' : '30px',
-          left: isPortrait ? '170px' : 'auto', // Start after movement joystick in portrait (30px + 120px + 20px margin)
-          width: isPortrait ? 'calc(100% - 190px)' : '180px', // Adjust width to not overlap with movement joystick
+          top: isPortraitPhone ? 'auto' : (isPortrait ? '60%' : '50%'), // Match movement joystick positioning
+          bottom: isPortraitPhone ? '95px' : 'auto', // Align with joystick center for phones
+          transform: isPortraitPhone ? 'none' : 'translateY(-50%)', // Match joystick transform
+          right: '30px', // Consistent right positioning
+          left: 'auto', // Auto left positioning for both orientations
+          width: '180px', // Fixed width for both orientations
           height: '50px', // Slightly smaller than movement joystick
           backgroundColor: 'rgba(0, 0, 0, 0.2)',
           border: '4px solid #ffffff',

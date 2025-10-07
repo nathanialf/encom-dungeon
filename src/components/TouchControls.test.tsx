@@ -276,10 +276,10 @@ describe('TouchControls', () => {
     }).not.toThrow();
   });
 
-  test('should position joystick at bottom in portrait mode', () => {
-    // Mock portrait orientation
+  test('should position joystick at bottom for portrait phone', () => {
+    // Mock portrait phone (< 768px)
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 800 });
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 600 });
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 400 });
     
     render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
@@ -288,6 +288,21 @@ describe('TouchControls', () => {
     expect(joystick).toHaveStyle({
       bottom: '60px',
       transform: 'none',
+    });
+  });
+
+  test('should position joystick centered for portrait tablet', () => {
+    // Mock portrait tablet (>= 768px)
+    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 1024 });
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 768 });
+    
+    render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
+    
+    const joystick = screen.getByText('MOVE').parentElement;
+    
+    expect(joystick).toHaveStyle({
+      top: '60%',
+      transform: 'translateY(-50%)',
     });
   });
 
@@ -326,17 +341,31 @@ describe('TouchControls', () => {
     expect(container.children).toHaveLength(2);
   });
 
-  test('should configure look bar dimensions correctly for portrait', () => {
-    // Mock portrait orientation
+  test('should configure look bar dimensions correctly for portrait phone', () => {
+    // Mock portrait phone
     Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 800 });
-    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 600 });
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 400 });
     
     const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
     
     const lookBar = container.children[1];
     expect(lookBar).toHaveStyle({
-      bottom: '120px', // Above joystick
-      left: '170px', // After joystick
+      bottom: '95px', // Aligned with joystick center for phones
+      width: '180px', // Fixed width
+    });
+  });
+
+  test('should configure look bar dimensions correctly for portrait tablet', () => {
+    // Mock portrait tablet
+    Object.defineProperty(window, 'innerHeight', { writable: true, configurable: true, value: 1024 });
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 768 });
+    
+    const { container } = render(<TouchControls onMove={mockOnMove} onLook={mockOnLook} />);
+    
+    const lookBar = container.children[1];
+    expect(lookBar).toHaveStyle({
+      top: '60%', // Centered for tablets
+      width: '180px', // Fixed width
     });
   });
 
@@ -349,7 +378,7 @@ describe('TouchControls', () => {
     
     const lookBar = container.children[1];
     expect(lookBar).toHaveStyle({
-      bottom: '60px', // Same level as joystick
+      top: '50%', // Vertically centered like joystick
       width: '180px', // Fixed width in landscape
     });
   });
