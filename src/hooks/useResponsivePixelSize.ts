@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 
 /**
- * Returns a pixel size value for shader effects that scales with screen width.
+ * Returns a pixel size value for shader effects that scales with device type.
  *
  * The CRT shader divides each pixel block into 4 columns (R, G, B, gap),
- * so pixel size must be a multiple of 4. Larger pixels on smaller screens
- * reduce the "screen door" effect by making RGB strips wider.
+ * so pixel size must be a multiple of 4. Larger pixels reduce the
+ * "screen door" effect by making RGB strips wider.
  *
- * - Small screens (< 600px): 8px (2px per RGB strip)
- * - Medium/Large screens (>= 600px): 4px (1px per RGB strip)
+ * - Touch devices (phones, tablets, foldables): 8px (2px per RGB strip)
+ * - Desktop screens: 12px (3px per RGB strip)
  */
 export function useResponsivePixelSize(): number {
   const [pixelSize, setPixelSize] = useState(() => calculatePixelSize());
@@ -26,11 +26,13 @@ export function useResponsivePixelSize(): number {
 }
 
 function calculatePixelSize(): number {
-  const width = window.innerWidth;
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-  if (width < 600) {
+  // Touch devices (phones, tablets, foldables) are held closer to the face
+  if (hasTouch) {
     return 8;
-  } else {
-    return 4;
   }
+
+  // Desktop displays get chunkier pixels for a more pronounced CRT effect
+  return 12;
 }

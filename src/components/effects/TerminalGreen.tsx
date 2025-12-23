@@ -17,23 +17,23 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   // Color lookup matrix - dark, medium, bright for each color
   vec3 colorMatrix[15] = vec3[15](
     // Green colors (index 0) - #00b300
-    vec3(0.0, 0.1, 0.0),    // dark green
-    vec3(0.0, 0.4, 0.1),    // medium green  
+    vec3(0.0, 0.03, 0.0),   // dark green (near black)
+    vec3(0.0, 0.4, 0.1),    // medium green
     vec3(0.0, 0.7, 0.15),   // bright green
     // Purple colors (index 1) - #8500ad
-    vec3(0.1, 0.0, 0.1),    // dark purple
+    vec3(0.03, 0.0, 0.03),  // dark purple (near black)
     vec3(0.3, 0.0, 0.4),    // medium purple
     vec3(0.52, 0.0, 0.68),  // bright purple
     // Teal colors (index 2) - #018c6c
-    vec3(0.0, 0.1, 0.08),   // dark teal
+    vec3(0.0, 0.03, 0.02),  // dark teal (near black)
     vec3(0.0, 0.3, 0.25),   // medium teal
     vec3(0.0, 0.55, 0.42),  // bright teal
     // Red colors (index 3) - #8b0000
-    vec3(0.1, 0.0, 0.0),    // dark red
+    vec3(0.03, 0.0, 0.0),   // dark red (near black)
     vec3(0.3, 0.0, 0.0),    // medium red
     vec3(0.55, 0.0, 0.0),   // bright red
     // Amber colors (index 4) - #d53600
-    vec3(0.1, 0.02, 0.0),   // dark amber
+    vec3(0.03, 0.01, 0.0),  // dark amber (near black)
     vec3(0.5, 0.12, 0.0),   // medium amber
     vec3(0.84, 0.21, 0.0)   // bright amber
   );

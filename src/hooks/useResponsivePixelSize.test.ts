@@ -2,67 +2,95 @@ import { renderHook, act } from '@testing-library/react';
 import { useResponsivePixelSize } from './useResponsivePixelSize';
 
 describe('useResponsivePixelSize', () => {
-  const originalInnerWidth = window.innerWidth;
+  const originalOntouchstart = window.ontouchstart;
+  const originalMaxTouchPoints = navigator.maxTouchPoints;
 
-  afterEach(() => {
-    // Reset window width after each test
-    Object.defineProperty(window, 'innerWidth', {
+  const setTouchDevice = (hasTouch: boolean) => {
+    if (hasTouch) {
+      Object.defineProperty(window, 'ontouchstart', {
+        writable: true,
+        configurable: true,
+        value: () => {}
+      });
+    } else {
+      delete (window as unknown as Record<string, unknown>).ontouchstart;
+    }
+    Object.defineProperty(navigator, 'maxTouchPoints', {
       writable: true,
       configurable: true,
-      value: originalInnerWidth
+      value: hasTouch ? 5 : 0
+    });
+  };
+
+  afterEach(() => {
+    // Reset touch capabilities after each test
+    if (originalOntouchstart !== undefined) {
+      Object.defineProperty(window, 'ontouchstart', {
+        writable: true,
+        configurable: true,
+        value: originalOntouchstart
+      });
+    } else {
+      delete (window as unknown as Record<string, unknown>).ontouchstart;
+    }
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      writable: true,
+      configurable: true,
+      value: originalMaxTouchPoints
     });
   });
 
-  test('returns 8 for small screens (< 600px)', () => {
-    Object.defineProperty(window, 'innerWidth', {
+  test('returns 8 for touch devices', () => {
+    setTouchDevice(true);
+
+    const { result } = renderHook(() => useResponsivePixelSize());
+    expect(result.current).toBe(8);
+  });
+
+  test('returns 12 for non-touch desktop devices', () => {
+    setTouchDevice(false);
+
+    const { result } = renderHook(() => useResponsivePixelSize());
+    expect(result.current).toBe(12);
+  });
+
+  test('detects touch via ontouchstart property', () => {
+    Object.defineProperty(window, 'ontouchstart', {
       writable: true,
       configurable: true,
-      value: 400
+      value: () => {}
+    });
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      writable: true,
+      configurable: true,
+      value: 0
     });
 
     const { result } = renderHook(() => useResponsivePixelSize());
     expect(result.current).toBe(8);
   });
 
-  test('returns 4 for medium/large screens (>= 600px)', () => {
-    Object.defineProperty(window, 'innerWidth', {
+  test('detects touch via maxTouchPoints', () => {
+    delete (window as unknown as Record<string, unknown>).ontouchstart;
+    Object.defineProperty(navigator, 'maxTouchPoints', {
       writable: true,
       configurable: true,
-      value: 800
+      value: 10
     });
 
     const { result } = renderHook(() => useResponsivePixelSize());
-    expect(result.current).toBe(4);
+    expect(result.current).toBe(8);
   });
 
-  test('returns 4 at boundary (600px)', () => {
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 600
-    });
+  test('updates pixel size on window resize when touch capability changes', () => {
+    setTouchDevice(false);
 
     const { result } = renderHook(() => useResponsivePixelSize());
-    expect(result.current).toBe(4);
-  });
+    expect(result.current).toBe(12);
 
-  test('updates pixel size on window resize', () => {
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 1920
-    });
-
-    const { result } = renderHook(() => useResponsivePixelSize());
-    expect(result.current).toBe(4);
-
-    // Resize to small screen
+    // Simulate touch device (e.g., external touchscreen connected)
     act(() => {
-      Object.defineProperty(window, 'innerWidth', {
-        writable: true,
-        configurable: true,
-        value: 400
-      });
+      setTouchDevice(true);
       window.dispatchEvent(new Event('resize'));
     });
 
